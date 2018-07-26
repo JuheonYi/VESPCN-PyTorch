@@ -2,8 +2,11 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+def make_model(args):
+    return EDSR(args)
 
 class ESPCN(nn.Module):
+#upscale_factor -> args
     def __init__(self, upscale_factor):
         super(ESPCN, self).__init__()
 
