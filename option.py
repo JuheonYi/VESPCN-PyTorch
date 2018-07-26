@@ -30,7 +30,7 @@ parser.add_argument('--data_range', type=str, default='1-800/801-810',
                     help='train/test data range')
 parser.add_argument('--ext', type=str, default='sep',
                     help='dataset file extension')
-parser.add_argument('--scale', type=str, default='4',
+parser.add_argument('--scale', type=str, default=3,
                     help='super resolution scale')
 parser.add_argument('--patch_size', type=int, default=192,
                     help='output patch size')
@@ -144,7 +144,7 @@ parser.add_argument('--save_results', action='store_true',
 
 args = parser.parse_args()
 
-args.scale = list(map(lambda x: int(x), args.scale.split('+')))
+#args.scale = list(map(lambda x: int(x), args.scale.split('+')))
 
 if args.epochs == 0:
     args.epochs = 1e8

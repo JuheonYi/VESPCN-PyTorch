@@ -10,9 +10,6 @@ import torch
 import torch.utils.data as data
 
 class SRData(data.Dataset):
-    """
-    Dataset class for super resolution tasks
-    """
     def __init__(self, args, name='', train=True, benchmark=False):
         self.args = args
         self.name = name
@@ -41,16 +38,18 @@ class SRData(data.Dataset):
     # Below functions as used to prepare images
     def _scan(self):
         names_hr = sorted(glob.glob(os.path.join(self.dir_hr, '*' + '.png')))
-        names_lr = [[] for _ in self.scale]
-        #print(self.dir_hr)
-        #print(names_hr)
+        names_lr = sorted(glob.glob(os.path.join(self.dir_lr, '*' + '.png')))
+        #names_lr = [[] for _ in self.scale]
+        print(self.dir_lr)
+        print(names_lr)
+        '''
         for f in names_hr:
             filename, _ = os.path.splitext(os.path.basename(f))
             for si, s in enumerate(self.scale):
                 names_lr[si].append(os.path.join(
                     self.dir_lr, 'X{}/{}.png'.format(s, filename)
                 ))
-
+        '''
         return names_hr, names_lr
 
     def _set_filesystem(self, dir_data):

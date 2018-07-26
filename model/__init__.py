@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 
 class Model(nn.Module):
-    def __init__(self, args, ckp):
+    def __init__(self, args):
         super(Model, self).__init__()
         print('Making model...')
 
@@ -25,7 +25,7 @@ class Model(nn.Module):
 
         if not args.cpu and args.n_GPUs > 1:
             self.model = nn.DataParallel(self.model, range(args.n_GPUs))
-
+        '''
         self.load(
             ckp.dir,
             pre_train=args.pre_train,
@@ -33,7 +33,7 @@ class Model(nn.Module):
             cpu=args.cpu
         )
         print(self.get_model(), file=ckp.log_file)
-
+        '''
     def reset(self):
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -72,7 +72,7 @@ class Model(nn.Module):
     def state_dict(self, **kwargs):
         target = self.get_model()
         return target.state_dict(**kwargs)
-
+    '''
     def save(self, apath, epoch, is_best=False, filename=''):
         target = self.get_model()
         filename = 'model_{}'.format(filename)
@@ -121,4 +121,4 @@ class Model(nn.Module):
                 ),
                 strict=False
             )
-
+    '''
