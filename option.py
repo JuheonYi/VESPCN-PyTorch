@@ -1,5 +1,4 @@
 import argparse
-import template
 
 parser = argparse.ArgumentParser(description='EDSR and MDSR')
 
@@ -19,19 +18,19 @@ parser.add_argument('--seed', type=int, default=1,
                     help='random seed')
 
 # Data specifications
-parser.add_argument('--dir_data', type=str, default='../../../dataset',
+parser.add_argument('--dir_data', type=str, default='/home/johnyi/deeplearning/research/SISR_Datasets/train',
                     help='dataset directory')
 parser.add_argument('--dir_demo', type=str, default='../test',
                     help='demo image directory')
-parser.add_argument('--data_train', type=str, default='DIV2K',
+parser.add_argument('--data_train', type=str, default='CDVL100',
                     help='train dataset name')
-parser.add_argument('--data_test', type=str, default='DIV2K',
+parser.add_argument('--data_test', type=str, default='CDVL100',
                     help='test dataset name')
 parser.add_argument('--data_range', type=str, default='1-800/801-810',
                     help='train/test data range')
 parser.add_argument('--ext', type=str, default='sep',
                     help='dataset file extension')
-parser.add_argument('--scale', type=str, default='4',
+parser.add_argument('--scale', type=str, default=3,
                     help='super resolution scale')
 parser.add_argument('--patch_size', type=int, default=192,
                     help='output patch size')
@@ -144,9 +143,8 @@ parser.add_argument('--save_results', action='store_true',
                     help='save output results')
 
 args = parser.parse_args()
-template.set_template(args)
 
-args.scale = list(map(lambda x: int(x), args.scale.split('+')))
+#args.scale = list(map(lambda x: int(x), args.scale.split('+')))
 
 if args.epochs == 0:
     args.epochs = 1e8
