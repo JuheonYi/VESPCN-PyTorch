@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 def make_model(args):
-    return EDSR(args)
+    return ESPCN(args)
 
 class ESPCN(nn.Module):
 #upscale_factor -> args
