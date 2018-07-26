@@ -9,7 +9,6 @@ import imageio
 import torch
 import torch.utils.data as data
 
-
 class SRData(data.Dataset):
     def __init__(self, args, name='', train=True, benchmark=False):
         self.args = args
@@ -40,6 +39,8 @@ class SRData(data.Dataset):
     def _scan(self):
         names_hr = sorted(glob.glob(os.path.join(self.dir_hr, '*' + '.png')))
         names_lr = [[] for _ in self.scale]
+        #print(self.dir_hr)
+        #print(names_hr)
         for f in names_hr:
             filename, _ = os.path.splitext(os.path.basename(f))
             for si, s in enumerate(self.scale):
@@ -52,7 +53,7 @@ class SRData(data.Dataset):
     def _set_filesystem(self, dir_data):
         self.apath = os.path.join(dir_data, self.name)
         self.dir_hr = os.path.join(self.apath, 'HR')
-        self.dir_lr = os.path.join(self.apath, 'LR_bicubic')
+        self.dir_lr = os.path.join(self.apath, 'LR')
 
     def __getitem__(self, idx):
         lr, hr, filename = self._load_file(idx)
