@@ -42,6 +42,10 @@ class Model(nn.Module):
                     m.bias.data.fill_(0)
 
     def forward(self, *args, idx_scale=0, x8=False):
+        """
+        forward_x8: consider augmentation
+        forward_chop: if the image is big, compensate for it
+        """
         self.idx_scale = idx_scale
         target = self.get_model()
         if hasattr(target, 'set_scale'):

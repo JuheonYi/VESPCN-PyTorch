@@ -10,6 +10,9 @@ import torch
 import torch.utils.data as data
 
 class SRData(data.Dataset):
+    """
+    Dataset class for super resolution tasks
+    """
     def __init__(self, args, name='', train=True, benchmark=False):
         self.args = args
         self.name = name
