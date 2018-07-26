@@ -9,6 +9,9 @@ import torch
 import torch.utils.data as data
 
 class Benchmark(srdata.SRData):
+    """
+    Data generator for benchmark tasks
+    """
     def __init__(self, args, name='', train=True, benchmark=True):
         super(Benchmark, self).__init__(
             args, name=name, train=train, benchmark=True

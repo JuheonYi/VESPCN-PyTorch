@@ -8,7 +8,14 @@ import skimage.transform as st
 import torch
 from torchvision import transforms
 
+
+"""
+Repository for common functions required for manipulating data
+"""
 def get_patch(*args, patch_size=96, scale=1, multi_scale=False):
+    """
+    Get patch from an image
+    """
     ih, iw, _ = args[0].shape
 
     p = scale if multi_scale else 1
