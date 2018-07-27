@@ -21,9 +21,11 @@ def postprocess(img):
     return out
 
 def calc_PSNR(img1, img2):
+    min_H = min(img1.shape[0], img2.shape[0])
+    min_W = min(img1.shape[1], img2.shape[1])
     #assume RGB image
-    target_data = np.array(img1, dtype=np.float64)
-    ref_data = np.array(img2, dtype=np.float64)
+    target_data = np.array(img1[0:min_H, 0:min_W, :], dtype=np.float64)
+    ref_data = np.array(img2[0:min_H, 0:min_W, :], dtype=np.float64)
     diff = ref_data - target_data
     diff = diff.flatten('C')
     rmse = math.sqrt(np.mean(diff ** 2.))
