@@ -13,3 +13,14 @@ class CDVL100(srdata.SRData):
         super(CDVL100, self).__init__(
             args, name=name, train=train
         )
+        
+    def _set_filesystem(self, dir_data):
+        ################################################
+        #                                              #
+        # Fill in your directory with your own template#
+        #                                              #
+        ################################################
+        if self.args.template == "JH":
+            self.apath = os.path.join(dir_data, self.name)
+            self.dir_hr = os.path.join(self.apath, 'HR')
+            self.dir_lr = os.path.join(self.apath, 'LR')

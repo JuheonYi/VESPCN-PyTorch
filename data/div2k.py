@@ -24,4 +24,7 @@ class DIV2K(srdata.SRData):
         # Fill in your directory with your own template#
         #                                              #
         ################################################
+        elif self.args.template == 'JH':
+            self.dir_hr = os.path.join(self.apath, 'DIV2K')
+            self.dir_lr = os.path.join(self.apath, 'DIV2K_LR')
 

@@ -27,5 +27,9 @@ class Benchmark(srdata.SRData):
         # Fill in your directory with your own template#
         #                                              #
         ################################################
+        elif self.args.template == "JH":
+            self.apath = os.path.join(dir_data, self.name)
+            self.dir_hr = os.path.join(self.apath, 'HR')
+            self.dir_lr = os.path.join(self.apath, 'LR')
 
 
