@@ -9,15 +9,11 @@ class ESPCN(nn.Module):
 #upscale_factor -> args
     def __init__(self, args):
         super(ESPCN, self).__init__()
-        print("scale:",args.scale)
+        print("scale:", args.scale)
         self.conv1 = nn.Conv2d(1, 64, kernel_size = 5, padding = 4)
         self.conv2 = nn.Conv2d(64, 32, kernel_size = 3, padding = 2)
         self.conv3 = nn.Conv2d(32, args.scale ** 2, kernel_size = 3, padding = 2)
         self.pixel_shuffle = nn.PixelShuffle(args.scale)
-        
-        torch.nn.init.xavier_uniform_(self.conv1.weight)
-        torch.nn.init.xavier_uniform_(self.conv2.weight)
-        torch.nn.init.xavier_uniform_(self.conv3.weight)
         
         self.relu = nn.ReLU()
         self.tanh = nn.Tanh()

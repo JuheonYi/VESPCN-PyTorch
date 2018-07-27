@@ -21,8 +21,6 @@ class Model(nn.Module):
 
         module = import_module('model.' + args.model.lower())
         self.model = module.make_model(args).to(self.device)
-        if args.precision == 'half': self.model = self.model.half()
-
         if not args.cpu and args.n_GPUs > 1:
             self.model = nn.DataParallel(self.model, range(args.n_GPUs))
         '''
@@ -34,13 +32,7 @@ class Model(nn.Module):
         )
         print(self.get_model(), file=ckp.log_file)
         '''
-    def reset(self):
-        for m in self.modules():
-            if isinstance(m, nn.Conv2d):
-                nn.init.kaiming_normal_(m.weight.data)
-                if hasattr(m, 'bias'):
-                    m.bias.data.fill_(0)
-
+    '''
     def forward(self, *args, idx_scale=0, x8=False):
         """
         forward_x8: consider augmentation
@@ -62,7 +54,7 @@ class Model(nn.Module):
             return self.forward_chop(*args)
         else:
             return self.model(*args)
-
+    '''
     def get_model(self):
         if self.n_GPUs == 1:
             return self.model
