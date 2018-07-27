@@ -1,5 +1,7 @@
 import numpy as np
+import torch
 import torch.optim as optim
+from torch.autograd.variable import Variable
 import time
 import data
 import model
@@ -39,6 +41,6 @@ for epoch in range(2000):
         #if epoch % 100 == 0 and i % 50 == 49:   
         #    print('[%d, %5d] loss : %.6f' % (epoch + 1, i+ 1, loss.data[0] / batch_num))
     
-print('Finished training, runtime: %.4f' %(time.time()-start_time0))
+print('Finished training, runtime: %.4f' %(time.time()-start_time))
 
 torch.save(net.state_dict(), './checkpoints/ESPCN.pkl')
