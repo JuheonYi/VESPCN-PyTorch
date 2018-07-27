@@ -12,19 +12,20 @@ class Benchmark(srdata.SRData):
     """
     Data generator for benchmark tasks
     """
-    def __init__(self, args, name='Set5', train=True, benchmark=True):
+    def __init__(self, args, name='', train=True):
         super(Benchmark, self).__init__(
-            args, name=name, train=train, benchmark=True
+            args, name=name, train=train
         )
 
     def _set_filesystem(self, dir_data):
-        self.apath = os.path.join(dir_data, self.name)
-        self.dir_hr = os.path.join(self.apath)
-        self.dir_lr = os.path.join(self.apath, 'LR')
-        
-        print(self.dir_hr)
-        print(self.dir_lr)
-        
-        #/....../train/CDVL100
-        #/....../test/Set5
+        if self.args.template == 'SY':
+            self.apath = os.path.join(dir_data, 'benchmark', self.name)
+            self.dir_hr = os.path.join(self.apath, 'HR')
+            self.dir_lr = os.path.join(self.apath, 'LR_bicubic', 'X{}'.format(self.args.scale))
+        ################################################
+        #                                              #
+        # Fill in your directory with your own template#
+        #                                              #
+        ################################################
+
 

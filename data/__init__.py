@@ -24,7 +24,7 @@ class Data:
 
         if benchmark:
             m_test = import_module('data.benchmark')
-            testset = getattr(m_test, 'Benchmark')(self.args, train=False)
+            testset = getattr(m_test, 'Benchmark')(self.args, name=args.data_test, train=False)
         else:
             class_name = self.data_test
             m_test = import_module('data.' + class_name.lower())

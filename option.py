@@ -1,4 +1,5 @@
 import argparse
+import template
 
 parser = argparse.ArgumentParser(description='EDSR and MDSR')
 
@@ -18,27 +19,27 @@ parser.add_argument('--seed', type=int, default=1,
                     help='random seed')
 
 # Data specifications
-parser.add_argument('--dir_data', type=str, default='/home/johnyi/deeplearning/research/SISR_Datasets/train',
+parser.add_argument('--dir_data', type=str, default='../../Dataset',
                     help='dataset directory')
-parser.add_argument('--dir_data_test', type=str, default='/home/johnyi/deeplearning/research/SISR_Datasets/test',
+parser.add_argument('--dir_data_test', type=str, default='../../Dataset',
                     help='dataset directory')
 parser.add_argument('--dir_demo', type=str, default='../test',
                     help='demo image directory')
-parser.add_argument('--data_train', type=str, default='CDVL100',
+parser.add_argument('--data_train', type=str, default='DIV2K',
                     help='train dataset name')
 parser.add_argument('--data_test', type=str, default='Set5',
                     help='test dataset name')
 parser.add_argument('--data_range', type=str, default='1-800/801-810',
                     help='train/test data range')
-parser.add_argument('--ext', type=str, default='sep',
-                    help='dataset file extension')
+parser.add_argument('--process', action='store_true',
+                    help='if onces, load all photos at once')
 parser.add_argument('--scale', type=str, default=3,
                     help='super resolution scale')
-parser.add_argument('--patch_size', type=int, default=192,
+parser.add_argument('--patch_size', type=int, default=17,
                     help='output patch size')
 parser.add_argument('--rgb_range', type=int, default=1,
                     help='maximum value of RGB')
-parser.add_argument('--n_colors', type=int, default=3,
+parser.add_argument('--n_colors', type=int, default=1,
                     help='number of color channels to use')
 parser.add_argument('--chop', action='store_true',
                     help='enable memory-efficient forward')
@@ -46,7 +47,7 @@ parser.add_argument('--no_augment', action='store_true',
                     help='do not use data augmentation')
 
 # Model specifications
-parser.add_argument('--model', default='EDSR',
+parser.add_argument('--model', default='ESPCN',
                     help='model name')
 
 parser.add_argument('--act', type=str, default='relu',
@@ -68,20 +69,6 @@ parser.add_argument('--dilation', action='store_true',
 parser.add_argument('--precision', type=str, default='single',
                     choices=('single', 'half'),
                     help='FP precision for test (single | half)')
-
-# Option for Residual dense network (RDN)
-parser.add_argument('--G0', type=int, default=64,
-                    help='default number of filters. (Use in RDN)')
-parser.add_argument('--RDNkSize', type=int, default=3,
-                    help='default kernel size. (Use in RDN)')
-parser.add_argument('--RDNconfig', type=str, default='B',
-                    help='parameters config of RDN. (Use in RDN)')
-
-# Option for Residual channel attention network (RCAN)
-parser.add_argument('--n_resgroups', type=int, default=10,
-                    help='number of residual groups')
-parser.add_argument('--reduction', type=int, default=16,
-                    help='number of feature maps reduction')
 
 # Training specifications
 parser.add_argument('--reset', action='store_true',
@@ -145,8 +132,7 @@ parser.add_argument('--save_results', action='store_true',
                     help='save output results')
 
 args = parser.parse_args()
-
-#args.scale = list(map(lambda x: int(x), args.scale.split('+')))
+template.set_template(args)
 
 if args.epochs == 0:
     args.epochs = 1e8

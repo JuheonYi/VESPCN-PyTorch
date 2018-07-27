@@ -12,16 +12,14 @@ from torchvision import transforms
 """
 Repository for common functions required for manipulating data
 """
-def get_patch(*args, patch_size=17, scale=1, multi_scale=False):
+def get_patch(*args, patch_size=17, scale=1):
     """
     Get patch from an image
     """
     ih, iw, _ = args[0].shape
 
-    #p = scale if multi_scale else 1
     ip = patch_size
     tp = scale * ip
-    #ip = tp // scale
 
     ix = random.randrange(0, iw - ip + 1)
     iy = random.randrange(0, ih - ip + 1)
@@ -34,8 +32,6 @@ def get_patch(*args, patch_size=17, scale=1, multi_scale=False):
 
     return ret
 
-mean_RGB = np.array([123.68 ,  116.779,  103.939])
-mean_YCbCr = np.array([109])
 
 def set_channel(*args, n_channels=3):
     def _set_channel(img):
@@ -56,8 +52,10 @@ def np2Tensor(*args, rgb_range=255):
     def _np2Tensor(img):
         # NHWC -> NCHW
         if img.shape[2] == 3:
+            mean_RGB = np.array([123.68, 116.779, 103.939])
             img = img.astype('float64') - mean_RGB
-        else: 
+        else:
+            mean_YCbCr = np.array([109])
             img = img.astype('float64') - mean_YCbCr
         
         np_transpose = np.ascontiguousarray(img.transpose((2, 0, 1)))
