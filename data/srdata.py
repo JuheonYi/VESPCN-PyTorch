@@ -37,6 +37,9 @@ class SRData(data.Dataset):
 
     # Below functions as used to prepare images
     def _scan(self):
+        """
+        Returns a list of image directories
+        """
         names_hr = sorted(glob.glob(os.path.join(self.dir_hr, '*' + '.png')))
         names_lr = sorted(glob.glob(os.path.join(self.dir_lr, '*' + '.png')))
         #names_lr = [[] for _ in self.scale]
@@ -53,6 +56,7 @@ class SRData(data.Dataset):
         return names_hr, names_lr
 
     def _set_filesystem(self, dir_data):
+
         self.apath = os.path.join(dir_data, self.name)
         self.dir_hr = os.path.join(self.apath, 'HR')
         self.dir_lr = os.path.join(self.apath, 'LR')
@@ -80,6 +84,9 @@ class SRData(data.Dataset):
             return idx
 
     def _load_file(self, idx):
+        """
+        Read image from given image directory
+        """
         idx = self._get_index(idx)
         f_hr = self.images_hr[idx]
         f_lr = self.images_lr[self.idx_scale][idx]
@@ -102,6 +109,9 @@ class SRData(data.Dataset):
         return lr, hr, filename
 
     def get_patch(self, lr, hr):
+        """
+        Returns patches for multiple scales
+        """
         scale = self.scale[self.idx_scale]
         multi_scale = len(self.scale) > 1
         if self.train:
