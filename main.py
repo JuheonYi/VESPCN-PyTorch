@@ -20,7 +20,7 @@ for epoch in range(2000):
         print('Epoch %d, runtime: %.4f' %(epoch + 1, time.time()-start_time))
     start_time = time.time()
     
-    for batch, (LR, HR, _, idx_scale) in enumerate(loader.loader_train):
+    for batch, (LR, HR, _) in enumerate(loader.loader_train):
         #print(i)
         HR = HR.type(torch.FloatTensor) 
         inputs, target = Variable(LR), Variable(HR)
