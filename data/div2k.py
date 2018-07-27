@@ -15,8 +15,8 @@ class DIV2K(srdata.SRData):
         return names_hr, names_lr
 
     def _set_filesystem(self, dir_data):
-        super(DIV2K, self)._set_filesystem(dir_data)
         if self.args.template == 'SY':
+            self.apath = os.path.join(dir_data, self.name)
             self.dir_hr = os.path.join(self.apath, 'DIV2K_train_HR')
             self.dir_lr = os.path.join(self.apath, 'DIV2K_train_LR_bicubic', 'X{}'.format(self.args.scale))
         ################################################
@@ -25,6 +25,8 @@ class DIV2K(srdata.SRData):
         #                                              #
         ################################################
         elif self.args.template == 'JH':
-            self.dir_hr = os.path.join(self.apath, 'DIV2K')
-            self.dir_lr = os.path.join(self.apath, 'DIV2K_LR')
+            self.dir_hr = os.path.join(dir_data, 'DIV2K')
+            self.dir_lr = os.path.join(dir_data, 'DIV2K_LR')
+            print(self.dir_hr)
+            print(self.dir_lr)
 
