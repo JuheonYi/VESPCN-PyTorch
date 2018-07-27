@@ -29,19 +29,30 @@ class SRData(data.Dataset):
             else:
                 data_range = data_range[1]
         self.begin, self.end = list(map(lambda x: int(x), data_range))
-        self._set_filesystem(args.dir_data)
+        if train == True:
+            self._set_filesystem(args.dir_data)
+        else:
+            self._set_filesystem(args.dir_data_test)
         self.images_hr, self.images_lr = self._scan()
+        
+        self.data_hr, self.data_lr = self._scan_and_load()
+        print("images: ", len(self.data_hr), len(self.data_lr))
+        print("size: ", self.data_hr[0].shape, self.data_lr[0].shape)
 
         if train:
             self.repeat = args.test_every // (len(self.images_hr) // args.batch_size)
 
     # Below functions as used to prepare images
     def _scan(self):
+        """
+        Returns a list of image directories
+        """
         names_hr = sorted(glob.glob(os.path.join(self.dir_hr, '*' + '.png')))
         names_lr = sorted(glob.glob(os.path.join(self.dir_lr, '*' + '.png')))
         #names_lr = [[] for _ in self.scale]
-        print(self.dir_lr)
-        print(names_lr)
+        #print(self.dir_lr)
+        #print(names_lr)
+        print("number of images:", len(names_lr))
         '''
         for f in names_hr:
             filename, _ = os.path.splitext(os.path.basename(f))
@@ -51,20 +62,39 @@ class SRData(data.Dataset):
                 ))
         '''
         return names_hr, names_lr
+    
+    # Below functions as used to prepare images
+    def _scan_and_load(self):
+        """
+        Returns loaded images in numpy array
+        """
+        names_hr = sorted(glob.glob(os.path.join(self.dir_hr, '*' + '.png')))
+        names_lr = sorted(glob.glob(os.path.join(self.dir_lr, '*' + '.png')))
+
+        data_hr = [imageio.imread(filename) for filename in names_hr]
+        data_lr = [imageio.imread(filename) for filename in names_lr]
+        
+        return data_hr, data_lr
 
     def _set_filesystem(self, dir_data):
+
         self.apath = os.path.join(dir_data, self.name)
         self.dir_hr = os.path.join(self.apath, 'HR')
         self.dir_lr = os.path.join(self.apath, 'LR')
 
     def __getitem__(self, idx):
-        lr, hr, filename = self._load_file(idx)
-        lr, hr = self.get_patch(lr, hr)
+        #lr, hr, filename = self._load_file(idx)
+        lr, hr, filename = self._load_file_from_loaded_data(idx)
+        #lr, hr = self.get_patch(lr, hr)
+        if self.train == True:
+            lr, hr = common.get_patch(lr, hr, scale=3)
+          
         lr, hr = common.set_channel(lr, hr, n_channels=self.args.n_colors)
+        #print(lr.shape, hr.shape)
         lr_tensor, hr_tensor = common.np2Tensor(
             lr, hr, rgb_range=self.args.rgb_range
         )
-
+        #print(lr_tensor.size(), hr_tensor.size())
         return lr_tensor, hr_tensor, filename
 
     def __len__(self):
@@ -80,9 +110,13 @@ class SRData(data.Dataset):
             return idx
 
     def _load_file(self, idx):
+        """
+        Read image from given image directory
+        """
         idx = self._get_index(idx)
         f_hr = self.images_hr[idx]
-        f_lr = self.images_lr[self.idx_scale][idx]
+        f_lr = self.images_lr[idx]
+        #f_lr = self.images_lr[self.idx_scale][idx]
 
         if self.args.ext.find('bin') >= 0:
             filename = f_hr['name']
@@ -100,9 +134,43 @@ class SRData(data.Dataset):
                     lr = np.load(_f)[0]['image']
 
         return lr, hr, filename
+    
+    def _load_file_from_loaded_data(self, idx):
+        """
+        Read image from given image directory
+        """
+        idx = self._get_index(idx)
+        hr = self.data_hr[idx]
+        lr = self.data_lr[idx]
+        filename = ""
+        '''
+        f_hr = self.images_hr[idx]
+        f_lr = self.images_lr[idx]
+        #f_lr = self.images_lr[self.idx_scale][idx]
+
+        if self.args.ext.find('bin') >= 0:
+            filename = f_hr['name']
+            hr = f_hr['image']
+            lr = f_lr['image']
+        else:
+            filename, _ = os.path.splitext(os.path.basename(f_hr))
+            if self.args.ext == 'img' or self.benchmark:
+                hr = imageio.imread(f_hr)
+                lr = imageio.imread(f_lr)
+            elif self.args.ext.find('sep') >= 0:
+                with open(f_hr, 'rb') as _f:
+                    hr = np.load(_f)[0]['image']
+                with open(f_lr, 'rb') as _f:
+                    lr = np.load(_f)[0]['image']
+        '''
+        return lr, hr, filename
 
     def get_patch(self, lr, hr):
-        scale = self.scale[self.idx_scale]
+        """
+        Returns patches for multiple scales
+        """
+        #scale = self.scale[self.idx_scale]
+        scale = self.scale
         multi_scale = len(self.scale) > 1
         if self.train:
             lr, hr = common.get_patch(

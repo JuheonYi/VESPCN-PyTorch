@@ -20,11 +20,13 @@ parser.add_argument('--seed', type=int, default=1,
 # Data specifications
 parser.add_argument('--dir_data', type=str, default='/home/johnyi/deeplearning/research/SISR_Datasets/train',
                     help='dataset directory')
+parser.add_argument('--dir_data_test', type=str, default='/home/johnyi/deeplearning/research/SISR_Datasets/test',
+                    help='dataset directory')
 parser.add_argument('--dir_demo', type=str, default='../test',
                     help='demo image directory')
 parser.add_argument('--data_train', type=str, default='CDVL100',
                     help='train dataset name')
-parser.add_argument('--data_test', type=str, default='CDVL100',
+parser.add_argument('--data_test', type=str, default='Set5',
                     help='test dataset name')
 parser.add_argument('--data_range', type=str, default='1-800/801-810',
                     help='train/test data range')
@@ -34,7 +36,7 @@ parser.add_argument('--scale', type=str, default=3,
                     help='super resolution scale')
 parser.add_argument('--patch_size', type=int, default=192,
                     help='output patch size')
-parser.add_argument('--rgb_range', type=int, default=255,
+parser.add_argument('--rgb_range', type=int, default=1,
                     help='maximum value of RGB')
 parser.add_argument('--n_colors', type=int, default=3,
                     help='number of color channels to use')
