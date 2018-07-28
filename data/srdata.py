@@ -60,7 +60,9 @@ class SRData(data.Dataset):
         return names_hr, names_lr
     
     def _load(self, names_hr, names_lr):
-
+        """
+        Load image files from specified list of file paths
+        """
         data_lr = [imageio.imread(filename) for filename in names_lr]
         data_hr = [imageio.imread(filename) for filename in names_hr]
 
