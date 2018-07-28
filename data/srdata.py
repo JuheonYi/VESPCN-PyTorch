@@ -21,6 +21,7 @@ class SRData(data.Dataset):
         self.idx_scale = 0
 
         data_range = [r.split('-') for r in args.data_range.split('/')]
+        # Specify which data to read depending on training/testing
         if train:
             data_range = data_range[0]
         else:
@@ -41,6 +42,7 @@ class SRData(data.Dataset):
             self.data_hr, self.data_lr = self._load(self.images_hr, self.images_lr)
 
         if train:
+            # self.repeat specifies how many epochs to iterate before evaluating
             self.repeat = args.test_every // (len(self.images_hr) // args.batch_size)
 
     # Below functions as used to prepare images
@@ -54,12 +56,21 @@ class SRData(data.Dataset):
         return names_hr, names_lr
     
     def _load(self, names_hr, names_lr):
+        """
+
+        :param names_hr: List of file paths to high-resolution images
+        :param names_lr: List of file paths to low-resolution images
+        :return: High-resolution and low-resolution data read from disk
+        """
         data_lr = [imageio.imread(filename) for filename in names_lr]
         data_hr = [imageio.imread(filename) for filename in names_hr]
         
         return data_hr, data_lr
 
     def _set_filesystem(self, dir_data):
+        """
+        Specifies file directories for high-resolution and low-resolution data
+        """
         self.apath = os.path.join(dir_data, self.name)
         if self.args.template == 'SY':
             self.dir_hr = os.path.join(self.apath, 'HR')
@@ -73,6 +84,9 @@ class SRData(data.Dataset):
             self.apath = os.path.join(dir_data, self.name)
             self.dir_hr = os.path.join(self.apath, 'HR')
             self.dir_lr = os.path.join(self.apath, 'LR')
+        elif self.args.template == "KJ":
+            pass
+            # TODO: specify data path
 
     def __getitem__(self, idx):
         if self.args.process:
@@ -93,6 +107,9 @@ class SRData(data.Dataset):
             return len(self.images_hr)
 
     def _get_index(self, idx):
+        """
+        Prevent indices from going out of bounds
+        """
         if self.train:
             return idx % len(self.images_hr)
         else:
@@ -100,7 +117,7 @@ class SRData(data.Dataset):
 
     def _load_file(self, idx):
         """
-        Read image from given image directory
+        Read image at given image directory from disk
         """
         idx = self._get_index(idx)
         f_hr = self.images_hr[idx]
@@ -113,6 +130,9 @@ class SRData(data.Dataset):
         return lr, hr, filename
     
     def _load_file_from_loaded_data(self, idx):
+        """
+        Read image directly from memory
+        """
         idx = self._get_index(idx)
         hr = self.data_hr[idx]
         lr = self.data_lr[idx]
@@ -141,4 +161,4 @@ class SRData(data.Dataset):
         return lr, hr
 
     def set_scale(self, idx_scale):
-        self.idx_scale = idx_scale
+        self.idx_scale = idx_scale  # TODO: What is idx_scale?

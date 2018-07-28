@@ -67,6 +67,9 @@ def np2Tensor(*args, rgb_range=255):
     return [_np2Tensor(a) for a in args]
 
 def augment(*args, hflip=True, rot=True):
+    """
+    Augment input and average results for better inference
+    """
     hflip = hflip and random.random() < 0.5
     vflip = rot and random.random() < 0.5
     rot90 = rot and random.random() < 0.5
