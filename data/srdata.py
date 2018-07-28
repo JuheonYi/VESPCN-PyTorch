@@ -1,7 +1,7 @@
 import os
 import glob
 import time
-
+import skimage.color as sc
 from data import common
 import pickle
 import numpy as np
@@ -39,7 +39,11 @@ class SRData(data.Dataset):
         self.images_hr, self.images_lr = self._scan()
         if args.process:
             print('making numpy')
-            self.data_hr, self.data_lr = self._load(self.images_hr, self.images_lr)
+            if train:
+                self.data_hr, self.data_lr = self._load(self.images_hr, self.images_lr)
+            else:
+                self.data_hr, self.data_lr = self._load(self.images_hr, self.images_lr)
+                
 
         if train:
             # self.repeat specifies how many epochs to iterate before evaluating
@@ -56,15 +60,16 @@ class SRData(data.Dataset):
         return names_hr, names_lr
     
     def _load(self, names_hr, names_lr):
-        """
 
-        :param names_hr: List of file paths to high-resolution images
-        :param names_lr: List of file paths to low-resolution images
-        :return: High-resolution and low-resolution data read from disk
-        """
         data_lr = [imageio.imread(filename) for filename in names_lr]
         data_hr = [imageio.imread(filename) for filename in names_hr]
-        
+
+        if self.train: # Train dataloader loads images in RGB
+            data_lr = [imageio.imread(filename) for filename in names_lr]
+            data_hr = [imageio.imread(filename) for filename in names_hr]
+        else: # Test dataloader loads images in YCbCr
+            data_lr = [sc.rgb2ycbcr(imageio.imread(filename)) for filename in names_lr]
+            data_hr = [sc.rgb2ycbcr(imageio.imread(filename)) for filename in names_hr]
         return data_hr, data_lr
 
     def _set_filesystem(self, dir_data):
@@ -94,7 +99,9 @@ class SRData(data.Dataset):
         else:
             lr, hr, filename = self._load_file(idx)
         lr, hr = self.get_patch(lr, hr)
-        lr, hr = common.set_channel(lr, hr, n_channels=self.args.n_colors)
+        if self.train:
+            lr, hr = common.set_channel(lr, hr, n_channels=self.args.n_colors)
+        
         lr_tensor, hr_tensor = common.np2Tensor(
             lr, hr, rgb_range=self.args.rgb_range
         )
