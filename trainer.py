@@ -2,7 +2,7 @@ import os
 import math
 import time
 import imageio
-import cv2
+import decimal
 
 import numpy as np
 from scipy import misc
@@ -42,7 +42,7 @@ class Trainer:
         epoch = self.scheduler.last_epoch + 1
         lr = self.scheduler.get_lr()[0]
 
-        self.ckp.write_log('Epoch {:3d} with Lr {}'.format(epoch, lr))
+        self.ckp.write_log('Epoch {:3d} with Lr {:.2e}'.format(epoch, decimal.Decimal(lr)))
 
         self.model.train()
         self.ckp.start_log()
@@ -62,7 +62,7 @@ class Trainer:
             self.optimizer.step()
 
             if batch % self.args.print_every == 0:
-                self.ckp.write_log('[{}/{}]\tLoss : {}'.format(
+                self.ckp.write_log('[{}/{}]\tLoss : {:.5f}'.format(
                     (batch + 1) * self.args.batch_size, len(self.loader_train.dataset),
                     self.ckp.loss_log[-1] / (batch + 1)))
 
@@ -72,8 +72,8 @@ class Trainer:
         def _torch_imresize(ttensor, scale):
             nparray = ttensor.data.cpu().numpy()
             nparray = np.transpose(np.squeeze(nparray, axis=0), (1,2,0))
-            nparray = misc.imresize(nparray, size=scale, interp='bicubic')
-            nparray = np.expand_dims(np.resize(nparray, (2,0,1)), axis=0)
+            nparray = misc.imresize(nparray, size=scale*100, interp='bicubic')
+            nparray = np.expand_dims(np.transpose(nparray, (2,0,1)), axis=0)
             return torch.from_numpy(nparray).float()
 
         epoch = self.scheduler.last_epoch + 1
@@ -87,7 +87,7 @@ class Trainer:
                     # If n_colors is 1, split image into Y,Cb,Cr
                     lr_ycbcr = lr.clone()
                     lr = lr[:, 0:1, :, :]
-                    sr_cbcr = _torch_imresize(lr_cbcr, self.args.scale).to(self.device)
+                    sr_cbcr = _torch_imresize(lr_ycbcr, self.args.scale)[:, 1:, :, :].to(self.device)
                     hr_ycbcr = hr.clone()
                     hr = hr[:, 0:1, :, :]
 
@@ -96,9 +96,9 @@ class Trainer:
                 hr = hr.to(self.device)
 
                 sr = self.model(lr)
-                PSNR = utils.calc_PSNR(sr, hr)
-                self.ckp.report_log(PSNR.item(), train=False)
-                sr = utils.postprocess(sr)
+                PSNR = utils.calc_psnr(self.args, sr, hr)
+                self.ckp.report_log(PSNR, train=False)
+                sr = utils.postprocess(sr, self.args.rgb_range, self.device)
 
                 if self.args.n_colors == 1 and lr.size()[1] == 3:
                     lr = lr_ycbcr

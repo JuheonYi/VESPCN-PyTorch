@@ -11,14 +11,9 @@ class Model(nn.Module):
         print('Making model...')
 
         self.scale = args.scale
-        self.idx_scale = 0
-        self.self_ensemble = args.self_ensemble
-        self.chop = args.chop
-        self.precision = args.precision
         self.cpu = args.cpu
         self.device = torch.device('cpu' if args.cpu else 'cuda')
         self.n_GPUs = args.n_GPUs
-        self.save_models = args.save_models
         self.ckp = ckp
 
         module = import_module('model.' + args.model.lower())

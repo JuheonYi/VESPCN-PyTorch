@@ -73,7 +73,7 @@ class SRData(data.Dataset):
             self.dir_lr = os.path.join(self.apath, 'LR')
 
     def __getitem__(self, idx):
-        if self.args.process:
+        if self.train and self.args.process:
             lr, hr, filename = self._load_file_from_loaded_data(idx)
         else:
             lr, hr, filename = self._load_file(idx)

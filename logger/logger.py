@@ -40,6 +40,8 @@ class Logger:
             if not os.path.exists(self.dir + '/result'):
                 os.makedirs(self.dir + '/result')
 
+        print('Save Path : {}'.format(self.dir))
+
         open_type = 'a' if os.path.exists(self.dir + '/log.txt') else 'w'
         self.log_file = open(self.dir + '/log.txt', open_type)
         with open(self.dir + '/config.txt', open_type) as f:
@@ -113,3 +115,6 @@ class Logger:
         plt.grid(True)
         plt.savefig(os.path.join(self.dir, 'psnr.pdf'))
         plt.close(fig)
+
+    def done(self):
+        self.log_file.close()

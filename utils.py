@@ -5,14 +5,14 @@ import numpy as np
 import math
 
 
-def postprocess(img, rgb_range):
+def postprocess(img, rgb_range, device):
     rgb_coefficient = 255 / rgb_range
     if img.shape[2] == 3:
-        mean_RGB = torch.Tensor([123.68, 116.779, 103.939])
+        mean_RGB = torch.Tensor([123.68, 116.779, 103.939]).to(device)
         mean_RGB = mean_RGB.reshape([1, 3, 1, 1])
         out = (img.mul(rgb_coefficient) + mean_RGB).clamp(0, 255).round().div(rgb_coefficient)
     else:
-        mean_YCbCr = torch.Tensor([109])
+        mean_YCbCr = torch.Tensor([109]).to(device)
         out = (img.mul(rgb_coefficient) + mean_YCbCr).clamp(0, 255).round().div(rgb_coefficient)
     return out
 

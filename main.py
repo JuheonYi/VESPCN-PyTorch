@@ -4,18 +4,17 @@ import data
 import model
 from option import args
 from trainer import Trainer
-import os
+from logger import logger
+
 
 torch.manual_seed(args.seed)
-
-if not os.path.exists("./samples/{}".format(args.data_test)):
-    os.makedirs("./samples/{}".format(args.data_test))
+chkp = logger.Logger(args)
 
 
 loader = data.Data(args)
-model = model.Model(args)
-t = Trainer(args, loader, model)
+model = model.Model(args, chkp)
+t = Trainer(args, loader, model, chkp)
 while not t.terminate():
     t.train()
     t.test()
-
+chkp.done()
