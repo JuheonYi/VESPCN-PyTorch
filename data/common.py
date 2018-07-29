@@ -8,10 +8,11 @@ import skimage.transform as st
 import torch
 from torchvision import transforms
 
-
 """
 Repository for common functions required for manipulating data
 """
+
+
 def get_patch(*args, patch_size=17, scale=1):
     """
     Get patch from an image
@@ -40,13 +41,14 @@ def set_channel(*args, n_channels=3):
 
         c = img.shape[2]
         if n_channels == 1 and c == 3:
-            img = np.expand_dims(sc.rgb2ycbcr(img)[:, :, 0], 2)
+            img = sc.rgb2ycbcr(img)
         elif n_channels == 3 and c == 1:
             img = np.concatenate([img] * n_channels, 2)
 
         return img
 
     return [_set_channel(a) for a in args]
+
 
 def np2Tensor(*args, rgb_range=255):
     def _np2Tensor(img):
@@ -55,7 +57,7 @@ def np2Tensor(*args, rgb_range=255):
             mean_RGB = np.array([123.68, 116.779, 103.939])
             img = img.astype('float64') - mean_RGB
         else:
-            mean_YCbCr = np.array([109])
+            mean_YCbCr = np.array([109, 0, 0])
             img = img.astype('float64') - mean_YCbCr
         
         np_transpose = np.ascontiguousarray(img.transpose((2, 0, 1)))

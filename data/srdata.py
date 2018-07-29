@@ -36,13 +36,8 @@ class SRData(data.Dataset):
             self._set_filesystem(args.dir_data_test)
 
         self.images_hr, self.images_lr = self._scan()
-        if args.process:
-            print('making numpy')
-            if train:
-                self.data_hr, self.data_lr = self._load(self.images_hr, self.images_lr)
-            else:
-                self.data_hr, self.data_lr = self._load(self.images_hr, self.images_lr)
-                
+        if train and args.process:
+            self.data_hr, self.data_lr = self._load(self.images_hr, self.images_lr)
 
         if train:
             self.repeat = args.test_every // (len(self.images_hr) // args.batch_size)
@@ -58,12 +53,8 @@ class SRData(data.Dataset):
         return names_hr, names_lr
     
     def _load(self, names_hr, names_lr):
-        if self.train: # Train dataloader loads images in RGB
-            data_lr = [imageio.imread(filename) for filename in names_lr]
-            data_hr = [imageio.imread(filename) for filename in names_hr]
-        else: # Test dataloader loads images in YCbCr
-            data_lr = [sc.rgb2ycbcr(imageio.imread(filename)) for filename in names_lr]
-            data_hr = [sc.rgb2ycbcr(imageio.imread(filename)) for filename in names_hr]
+        data_lr = [imageio.imread(filename) for filename in names_lr]
+        data_hr = [imageio.imread(filename) for filename in names_hr]
         return data_hr, data_lr
 
     def _set_filesystem(self, dir_data):

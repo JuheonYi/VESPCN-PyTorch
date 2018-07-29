@@ -32,4 +32,11 @@ class Benchmark(srdata.SRData):
             self.dir_hr = os.path.join(self.apath, 'HR')
             self.dir_lr = os.path.join(self.apath, 'LR')
 
+    def _load_file(self, idx):
+        lr, hr, filename = super(Benchmark, self)._load_file(idx=idx)
+        if self.name == 'Set14':
+            if lr.ndim == 2:
+                lr = np.repeat(np.expand_dims(lr, axis=2), 3, axis=2)
+                hr = np.repeat(np.expand_dims(hr, axis=2), 3, axis=2)
 
+        return lr, hr, filename
