@@ -13,8 +13,3 @@ def set_template(args):
         args.data_test = 'Set5'
         args.dir_data_test = '/home/johnyi/deeplearning/research/SISR_Datasets/test'
         args.process = True
-    elif args.template == 'KJ':
-        pass
-        # TODO: Specify template
-    else:
-        pass

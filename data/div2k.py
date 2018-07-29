@@ -29,3 +29,4 @@ class DIV2K(srdata.SRData):
             self.dir_lr = os.path.join(dir_data, 'DIV2K_LR')
             print(self.dir_hr)
             print(self.dir_lr)
+

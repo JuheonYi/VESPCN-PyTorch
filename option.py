@@ -1,10 +1,6 @@
 import argparse
 import template
 
-"""
-Specify options on template -> use the modified options by calling set_template
-"""
-
 parser = argparse.ArgumentParser(description='EDSR and MDSR')
 
 parser.add_argument('--debug', action='store_true',
