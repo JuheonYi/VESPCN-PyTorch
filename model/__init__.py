@@ -4,6 +4,7 @@ from importlib import import_module
 import torch
 import torch.nn as nn
 
+
 class Model(nn.Module):
     def __init__(self, args):
         super(Model, self).__init__()
@@ -22,6 +23,7 @@ class Model(nn.Module):
         module = import_module('model.' + args.model.lower())
         self.model = module.make_model(args).to(self.device)
         if not args.cpu and args.n_GPUs > 1:
+            # Data parallelism in case we have more than one GPU
             self.model = nn.DataParallel(self.model, range(args.n_GPUs))
         '''
         self.load(
@@ -63,7 +65,7 @@ class Model(nn.Module):
         if self.n_GPUs == 1:
             return self.model
         else:
-            return self.model.module
+            return self.model.module  # Return the inner module which is wrapped with DataParallel
 
     def state_dict(self, **kwargs):
         target = self.get_model()
