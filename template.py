@@ -13,3 +13,11 @@ def set_template(args):
         args.data_test = 'Set5'
         args.dir_data_test = '/home/johnyi/deeplearning/research/SISR_Datasets/test'
         args.process = True
+    else:
+        # TODO: Download train/test data & modify args for real testing
+        args.batch_size = 2
+        args.epochs = 1000
+        args.dir_data = '/Users/junhokim/videoSR/data'
+        args.dir_data_test = '/Users/junhokim/videoSR/data'
+        args.process = True
+        args.n_sequence = 4

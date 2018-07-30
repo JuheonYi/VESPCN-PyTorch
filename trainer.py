@@ -91,7 +91,7 @@ class Trainer:
                     lr_cbcr = lr[:, 1:, :, :]
                     lr = lr[:, 0:1, :, :]
                     # TODO: need to postprocess sr_cbcr
-                    sr_cbcr = _torch_imresize(lr_ycbcr, self.args.scale)[:, 1:, :, :].to(self.device)
+                    sr_cbcr = _torch_imresize(lr_cbcr, self.args.scale)[:, 1:, :, :].to(self.device)
                     hr_cbcr = hr[:, 1:, :, :]
                     hr = hr[:, 0:1, :, :]
 

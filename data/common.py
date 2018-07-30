@@ -55,11 +55,9 @@ def np2Tensor(*args, rgb_range=255, n_colors=1):
         # NHWC -> NCHW
         if img.shape[2] == 3 and n_colors == 3:
             mean_RGB = np.array([123.68, 116.779, 103.939])
-            mean_RGB = mean_RGB.reshape([1, 3, 1, 1])
             img = img.astype('float64') - mean_RGB
         elif img.shape[2] == 3 and n_colors == 1:
             mean_YCbCr = np.array([109, 0, 0])
-            mean_YCbCr = mean_YCbCr.reshape([1, 3, 1, 1])
             img = img.astype('float64') - mean_YCbCr
         else:
             mean_YCbCr = np.array([109])
@@ -81,7 +79,7 @@ def augment(*args, hflip=True, rot=True):
     def _augment(img):
         if hflip: img = img[:, ::-1, :]
         if vflip: img = img[::-1, :, :]
-        if rot90: img = img.rot90()
+        if rot90: img = np.rot90(img)
         
         return img
 

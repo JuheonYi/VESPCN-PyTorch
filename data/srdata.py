@@ -71,6 +71,11 @@ class SRData(data.Dataset):
             self.apath = os.path.join(dir_data, self.name)
             self.dir_hr = os.path.join(self.apath, 'HR')
             self.dir_lr = os.path.join(self.apath, 'LR')
+        else:
+            # Must delete after testing!
+            self.dir_hr = os.path.join(self.apath, 'HR_small')
+            self.dir_lr = os.path.join(self.apath, 'LR_small')
+
 
     def __getitem__(self, idx):
         if self.train and self.args.process:
@@ -82,7 +87,7 @@ class SRData(data.Dataset):
             lr, hr = common.set_channel(lr, hr, n_channels=self.args.n_colors)
         
         lr_tensor, hr_tensor = common.np2Tensor(
-            lr, hr, rgb_range=self.args.rgb_range, n_colors=self.arg.n_colors
+            lr, hr, rgb_range=self.args.rgb_range, n_colors=self.args.n_colors
         )
         return lr_tensor, hr_tensor, filename
 

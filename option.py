@@ -43,6 +43,9 @@ parser.add_argument('--n_colors', type=int, default=1,
                     help='number of color channels to use')
 parser.add_argument('--no_augment', action='store_true',
                     help='do not use data augmentation')
+parser.add_argument('--n_sequence', type=int, default=1,
+                    help='length of image sequence')
+
 
 # Model specifications
 parser.add_argument('--model', default='ESPCN',
