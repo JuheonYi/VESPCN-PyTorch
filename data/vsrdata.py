@@ -49,17 +49,26 @@ class SRData(data.Dataset):
         """
         Returns a list of image directories
         """
-        vid_names = sorted(glob.glob(os.path.join(self.dir_hr,'Video*')))
+        vid_hr_names = sorted(glob.glob(os.path.join(self.dir_hr, 'Video*')))
+        vid_lr_names = sorted(glob.glob(os.path.join(self.dir_lr, 'Video*')))
         names_hr = []
         names_lr = []
-        for vid_name in vid_names:
-            names_hr.append(sorted(glob.glob(os.path.join(vid_name, '*.png'))))
-            names_lr.append(sorted(glob.glob(os.path.join(vid_name, '*.png'))))
+        for vid_hr_name, vid_lr_name in zip(vid_hr_names,vid_lr_names):
+            start = self._get_index(random.randint(0, self.img_range - self.n_seq))
+            hr_dir_names = sorted(glob.glob(os.path.join(vid_hr_name, '*.png')))[start:start+self.n_seq]
+            lr_dir_names = sorted(glob.glob(os.path.join(vid_lr_name, '*.png')))[start:start+self.n_seq]
+            names_hr.append(hr_dir_names)
+            names_lr.append(lr_dir_names)
         return names_hr, names_lr
 
     def _load(self, names_hr, names_lr):
-        # TODO: Modify _load
-
+        data_lr = []
+        data_hr = []
+        for idx in range(0,len(names_hr)):
+            lrs, hrs, _ = self._load_file(idx)
+            data_lr.append(lrs)
+            data_hr.append(hrs)
+        return data_hr, data_lr
         """
         data_lr = [imageio.imread(filename) for filename in names_lr]
         data_hr = [imageio.imread(filename) for filename in names_hr]
@@ -83,9 +92,9 @@ class SRData(data.Dataset):
 
     def __getitem__(self, idx):
         if self.train and self.args.process:
-            lrs, hrs, filenames = self._load_file_from_loaded_data(idx, self.n_seq)
+            lrs, hrs, filenames = self._load_file_from_loaded_data(idx)
         else:
-            lrs, hrs, filenames = self._load_file(idx, self.n_seq)
+            lrs, hrs, filenames = self._load_file(idx)
         patches = [self.get_patch(lr, hr) for lr, hr in zip(lrs, hrs)]
         lrs = np.array([patch[0] for patch in patches])
         hrs = np.array([patch[1] for patch in patches])
@@ -113,32 +122,29 @@ class SRData(data.Dataset):
         else:
             return idx
 
-    def _load_file(self, idx, n_seq):
+    def _load_file(self, idx):
         """
         Read image from given image directory
-        Return: n_seq * H * W * C numpy array
+        Return: n_seq * H * W * C numpy array and list of corresponding filenames
         """
+        f_hrs = self.images_hr[idx]
+        f_lrs = self.images_lr[idx]
 
-        start = self._get_index(random.randint(0, self.img_range-n_seq))
-        f_hr = self.images_hr[idx][start:start+n_seq]
-        f_lr = self.images_lr[idx][start:start+n_seq]
+        filenames = [os.path.splitext(os.path.basename(file))[0] for file in f_hrs]
 
-        filenames = [os.path.splitext(os.path.basename(file))[0] for file in f_hr]
-
-        hr = np.array([imageio.imread(hr_name) for hr_name in f_hr])
-        lr = np.array([imageio.imread(lr_name) for lr_name in f_lr])
+        hrs = np.array([imageio.imread(hr_name) for hr_name in f_hrs])
+        lrs = np.array([imageio.imread(lr_name) for lr_name in f_lrs])
 
 
-        return lr, hr, filenames
+        return lrs, hrs, filenames
 
-    def _load_file_from_loaded_data(self, idx, n_seq):
-        # TODO: Modify _load_file_from_loaded_data
-        idx = self._get_index(random.randint(0, self.img_range-n_seq))
-        hr = self.data_hr[idx]
-        lr = self.data_lr[idx]
-        filename = os.path.splitext(os.path.split(self.images_hr[idx])[-1])[0]
+    def _load_file_from_loaded_data(self, idx):
+        start = self._get_index(idx)
+        hrs = self.data_hr[idx]
+        lrs = self.data_lr[idx]
+        filenames = [os.path.splitext(os.path.split(name)[-1])[0] for name in self.images_hr[idx]]
 
-        return lr, hr, filename
+        return lrs, hrs, filenames
 
     def get_patch(self, lr, hr):
         """
