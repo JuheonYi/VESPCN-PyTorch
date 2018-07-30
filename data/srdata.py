@@ -10,6 +10,7 @@ import imageio
 import torch
 import torch.utils.data as data
 
+
 class SRData(data.Dataset):
     def __init__(self, args, name='', train=True):
         self.args = args
@@ -51,7 +52,7 @@ class SRData(data.Dataset):
         names_lr = sorted(glob.glob(os.path.join(self.dir_lr, '*.png')))
 
         return names_hr, names_lr
-    
+
     def _load(self, names_hr, names_lr):
         data_lr = [imageio.imread(filename) for filename in names_lr]
         data_hr = [imageio.imread(filename) for filename in names_hr]
@@ -71,11 +72,6 @@ class SRData(data.Dataset):
             self.apath = os.path.join(dir_data, self.name)
             self.dir_hr = os.path.join(self.apath, 'HR')
             self.dir_lr = os.path.join(self.apath, 'LR')
-        else:
-            # Must delete after testing!
-            self.dir_hr = os.path.join(self.apath, 'HR_small')
-            self.dir_lr = os.path.join(self.apath, 'LR_small')
-
 
     def __getitem__(self, idx):
         if self.train and self.args.process:
@@ -83,9 +79,7 @@ class SRData(data.Dataset):
         else:
             lr, hr, filename = self._load_file(idx)
         lr, hr = self.get_patch(lr, hr)
-        if self.train:
-            lr, hr = common.set_channel(lr, hr, n_channels=self.args.n_colors)
-        
+        lr, hr = common.set_channel(lr, hr, n_channels=self.args.n_colors)
         lr_tensor, hr_tensor = common.np2Tensor(
             lr, hr, rgb_range=self.args.rgb_range, n_colors=self.args.n_colors
         )
@@ -116,7 +110,7 @@ class SRData(data.Dataset):
         lr = imageio.imread(f_lr)
 
         return lr, hr, filename
-    
+
     def _load_file_from_loaded_data(self, idx):
         idx = self._get_index(idx)
         hr = self.data_hr[idx]

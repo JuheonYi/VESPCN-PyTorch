@@ -12,7 +12,7 @@ class Benchmark(srdata.SRData):
     """
     Data generator for benchmark tasks
     """
-    def __init__(self, args, name='', train=True):
+    def __init__(self, args, name='', train=False):
         super(Benchmark, self).__init__(
             args, name=name, train=train
         )
