@@ -92,7 +92,7 @@ parser.add_argument('--resume', action='store_true',
                     help='resume from the latest if true')
 parser.add_argument('--print_every', type=int, default=100,
                     help='how many batches to wait before logging training status')
-parser.add_argument('--save_images', action='store_true',
+parser.add_argument('--save_images', default=True,
                     help='save images')
 
 args = parser.parse_args()

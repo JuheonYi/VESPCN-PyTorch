@@ -6,7 +6,6 @@ from option import args
 from trainer import Trainer
 from logger import logger
 
-
 torch.manual_seed(args.seed)
 chkp = logger.Logger(args)
 

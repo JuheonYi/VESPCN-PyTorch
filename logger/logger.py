@@ -37,8 +37,9 @@ class Logger:
             os.makedirs(self.dir)
             if not os.path.exists(self.dir + '/model'):
                 os.makedirs(self.dir + '/model')
-            if not os.path.exists(self.dir + '/result'):
-                os.makedirs(self.dir + '/result')
+        if not os.path.exists(self.dir + '/result/'+self.args.data_test):
+            print("Creating dir for saving images...", self.dir + '/result/'+self.args.data_test)
+            os.makedirs(self.dir + '/result/'+self.args.data_test)
 
         print('Save Path : {}'.format(self.dir))
 
@@ -61,13 +62,15 @@ class Logger:
         self.plot_psnr_log(epoch)
 
     def save_images(self, filename, save_list, scale):
-        filename = '{}/results/{}_x{}_'.format(self.dir, filename, scale)
+        filename = '{}/result/{}/{}_x{}_'.format(self.dir, self.args.data_test, filename, scale)
         postfix = ['LR', 'HR', 'SR']
         for img, post in zip(save_list, postfix):
-            img = img[0].data.mul(255 / self.args.rgb_range)
+            #img = img[0].data.mul(255 / self.args.rgb_range)
+            print(img.cpu().numpy().shape)
             img = np.transpose(img.cpu().numpy(), (1,2,0)).astype('uint8')
             if post == 'LR':
-                img = misc.imresize(img, size=args.scale, interp='bicubic')
+                #img = misc.imresize(img, size= self.args.scale, interp='bicubic')
+                img = misc.imresize(img, size= (img.shape[0]*self.args.scale, img.shape[1]*self.args.scale), interp='bicubic')
             if img.shape[2] == 1:
                 img = img.squeeze(axis=2)
             elif img.shape[2] == 3 and self.args.n_colors == 1:

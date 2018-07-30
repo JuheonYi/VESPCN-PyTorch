@@ -25,8 +25,9 @@ class DIV2K(srdata.SRData):
         #                                              #
         ################################################
         elif self.args.template == 'JH':
+            print("Loading DIV2K")
             self.dir_hr = os.path.join(dir_data, 'DIV2K')
             self.dir_lr = os.path.join(dir_data, 'DIV2K_LR')
-            print(self.dir_hr)
-            print(self.dir_lr)
+            #print(self.dir_hr)
+            #print(self.dir_lr)
 

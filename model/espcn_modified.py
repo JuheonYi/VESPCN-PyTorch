@@ -9,7 +9,7 @@ class ESPCN_modified(nn.Module):
 #upscale_factor -> args
     def __init__(self, args):
         super(ESPCN_modified, self).__init__()
-        print("scale:", args.scale)
+        print("Creating modified ESPCN (x%d)" %args.scale)
         self.conv1 = nn.Conv2d(args.n_colors, 64, kernel_size = 5, padding = 2)
         self.conv1_1 = nn.Conv2d(64, 64, kernel_size = 3, padding = 1)
         self.conv1_2 = nn.Conv2d(64, 64, kernel_size = 3, padding = 1)

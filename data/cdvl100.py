@@ -24,6 +24,7 @@ class CDVL100(srdata.SRData):
             super(CDVL100, self)._set_filesystem(dir_data)
 
         if self.args.template == "JH":
+            print("Loading CDVL100")
             self.apath = os.path.join(dir_data, self.name)
             self.dir_hr = os.path.join(self.apath, 'HR')
             self.dir_lr = os.path.join(self.apath, 'LR')

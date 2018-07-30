@@ -84,9 +84,11 @@ class Trainer:
             tqdm_test = tqdm(self.loader_test, ncols=80)
             for idx_img, (lr, hr, filename) in enumerate(tqdm_test):
                 if self.args.n_colors == 1 and lr.size()[1] == 3:
+                    print("converting to YCbCr")
                     # If n_colors is 1, split image into Y,Cb,Cr
                     lr_ycbcr = lr.clone()
                     lr = lr[:, 0:1, :, :]
+                    # TODO: need to postprocess sr_cbcr
                     sr_cbcr = _torch_imresize(lr_ycbcr, self.args.scale)[:, 1:, :, :].to(self.device)
                     hr_ycbcr = hr.clone()
                     hr = hr[:, 0:1, :, :]
@@ -100,10 +102,12 @@ class Trainer:
                 self.ckp.report_log(PSNR, train=False)
                 sr = utils.postprocess(sr, self.args.rgb_range, self.device)
 
-                if self.args.n_colors == 1 and lr.size()[1] == 3:
+                #if self.args.n_colors == 1 and lr.size()[1] == 3:
+                if self.args.n_colors == 1 and lr.size()[1] == 1:
                     lr = lr_ycbcr
                     hr = hr_ycbcr
-                    sr = torch.cat((sr, sr_cbcr), axis=1)
+                    #sr = torch.cat((sr, sr_cbcr), axis=1)
+                    sr = torch.cat((sr, sr_cbcr), dim=1)
 
                 save_list = [lr, hr, sr]
                 if self.args.save_images:

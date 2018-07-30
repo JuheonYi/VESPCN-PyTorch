@@ -8,7 +8,7 @@ import torch.nn as nn
 class Model(nn.Module):
     def __init__(self, args, ckp):
         super(Model, self).__init__()
-        print('Making model...')
+        #print('Making model...')
 
         self.scale = args.scale
         self.cpu = args.cpu
