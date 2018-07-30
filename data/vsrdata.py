@@ -11,7 +11,7 @@ import torch
 import torch.utils.data as data
 
 
-class SRData(data.Dataset):
+class VSRData(data.Dataset):
     def __init__(self, args, name='', train=True):
         self.args = args
         self.name = name
@@ -89,6 +89,10 @@ class SRData(data.Dataset):
             self.apath = os.path.join(dir_data, self.name)
             self.dir_hr = os.path.join(self.apath, 'HR')
             self.dir_lr = os.path.join(self.apath, 'LR')
+        else:
+            # This is just for testing: must fix later!
+            self.dir_hr = os.path.join(self.apath, 'HR_small')
+            self.dir_lr = os.path.join(self.apath, 'LR_small')
 
     def __getitem__(self, idx):
         if self.train and self.args.process:
