@@ -59,9 +59,12 @@ class SRData(data.Dataset):
 
     def _load(self, names_hr, names_lr):
         # TODO: Modify _load
+
+        """
         data_lr = [imageio.imread(filename) for filename in names_lr]
         data_hr = [imageio.imread(filename) for filename in names_hr]
         return data_hr, data_lr
+        """
 
     def _set_filesystem(self, dir_data):
         self.apath = os.path.join(dir_data, self.name)
@@ -116,9 +119,9 @@ class SRData(data.Dataset):
         Return: n_seq * H * W * C numpy array
         """
 
-        idx = self._get_index(random.randint(0, self.img_range-n_seq))
-        f_hr = self.images_hr[idx:idx+n_seq]
-        f_lr = self.images_lr[idx:idx+n_seq]
+        start = self._get_index(random.randint(0, self.img_range-n_seq))
+        f_hr = self.images_hr[idx][start:start+n_seq]
+        f_lr = self.images_lr[idx][start:start+n_seq]
 
         filenames = [os.path.splitext(os.path.basename(file))[0] for file in f_hr]
 
