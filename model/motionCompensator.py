@@ -40,7 +40,7 @@ class MotionCompensator(nn.Module):
         coarse_in = self.tanh(self.c_conv5(coarse_in))
         coarse_out = self.c_pixel_shuffle(coarse_in)
         
-        frame_2_compensated_coarse = warp(frame_2, coarse_out)
+        frame_2_compensated_coarse = self.warp(frame_2, coarse_out)
         
         # Fine flow
         fine_in = tf.cat((frame_1, frame_2, frame_2_compensated_coarse, coarse_out), dim = 1)
@@ -52,10 +52,10 @@ class MotionCompensator(nn.Module):
         fine_out = self.f_pixel_shuffle(fine_in)
         
         flow = coarse_out + fine_out
-        frame_2_compensated = warp(frame_2, flow)
+        frame_2_compensated = self.warp(frame_2, flow)
         return x
     
-    def warp(img, flow):
+    def warp(self, img, flow):
         # TODO: add warping function
         # https://discuss.pytorch.org/t/solved-how-to-do-the-interpolating-of-optical-flow/5019
         img_compensated = F.grid_sample(img, flow, mode='bilinear', padding_mode='zeros')
