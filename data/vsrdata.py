@@ -9,6 +9,7 @@ import imageio
 import random
 import torch
 import torch.utils.data as data
+import cv2
 
 
 class VSRData(data.Dataset):
@@ -138,8 +139,8 @@ class VSRData(data.Dataset):
 
         filenames = [os.path.splitext(os.path.basename(file))[0] for file in f_hrs]
 
-        hrs = np.array([imageio.imread(hr_name) for hr_name in f_hrs])
-        lrs = np.array([imageio.imread(lr_name) for lr_name in f_lrs])
+        hrs = np.array([cv2.imread(hr_name) for hr_name in f_hrs])
+        lrs = np.array([cv2.imread(lr_name) for lr_name in f_lrs])
 
 
         return lrs, hrs, filenames
