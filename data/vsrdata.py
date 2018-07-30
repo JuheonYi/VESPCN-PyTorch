@@ -21,7 +21,7 @@ class VSRData(data.Dataset):
         self.scale = args.scale
         self.idx_scale = 0
         self.n_seq = args.n_sequence
-        self.img_range = 30  # Number of images saved per video
+        self.img_range = 30
         data_range = [r.split('-') for r in args.data_range.split('/')]
         if train:
             data_range = data_range[0]
@@ -42,7 +42,7 @@ class VSRData(data.Dataset):
             self.data_hr, self.data_lr = self._load(self.images_hr, self.images_lr)
 
         if train:
-            self.repeat = args.test_every // (len(self.images_hr) // args.batch_size)
+            self.repeat = args.test_every // (self.num_video // args.batch_size)
 
     # Below functions as used to prepare images
     def _scan(self):
@@ -51,6 +51,8 @@ class VSRData(data.Dataset):
         """
         vid_hr_names = sorted(glob.glob(os.path.join(self.dir_hr, 'Video*')))
         vid_lr_names = sorted(glob.glob(os.path.join(self.dir_lr, 'Video*')))
+        self.num_video = len(vid_hr_names)
+        print(self.num_video)  # TODO: Delete after testing!
         names_hr = []
         names_lr = []
         for vid_hr_name, vid_lr_name in zip(vid_hr_names,vid_lr_names):
@@ -64,7 +66,7 @@ class VSRData(data.Dataset):
     def _load(self, names_hr, names_lr):
         data_lr = []
         data_hr = []
-        for idx in range(0,len(names_hr)):
+        for idx in range(len(names_hr)):
             lrs, hrs, _ = self._load_file(idx)
             data_lr.append(lrs)
             data_hr.append(hrs)
@@ -91,8 +93,8 @@ class VSRData(data.Dataset):
             self.dir_lr = os.path.join(self.apath, 'LR')
         else:
             # This is just for testing: must fix later!
-            self.dir_hr = os.path.join(self.apath, 'HR_small')
-            self.dir_lr = os.path.join(self.apath, 'LR_small')
+            self.dir_hr = os.path.join(self.apath, 'HR_big')
+            self.dir_lr = os.path.join(self.apath, 'LR_big')
 
     def __getitem__(self, idx):
         if self.train and self.args.process:
@@ -122,7 +124,7 @@ class VSRData(data.Dataset):
 
     def _get_index(self, idx):
         if self.train:
-            return idx % len(self.images_hr)
+            return idx % self.num_video
         else:
             return idx
 
@@ -169,3 +171,6 @@ class VSRData(data.Dataset):
             hr = hr[0:ih * scale, 0:iw * scale]
 
         return lr, hr
+
+
+
