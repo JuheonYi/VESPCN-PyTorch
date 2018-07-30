@@ -58,4 +58,5 @@ class MotionCompensator(nn.Module):
     def warp(img, flow):
         # TODO: add warping function
         # https://discuss.pytorch.org/t/solved-how-to-do-the-interpolating-of-optical-flow/5019
+        img_compensated = F.grid_sample(img, flow, mode='bilinear', padding_mode='zeros')
         return img
