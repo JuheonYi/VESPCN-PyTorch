@@ -65,16 +65,15 @@ class Logger:
         filename = '{}/result/{}/{}_x{}_'.format(self.dir, self.args.data_test, filename, scale)
         postfix = ['LR', 'HR', 'SR']
         for img, post in zip(save_list, postfix):
-            #img = img[0].data.mul(255 / self.args.rgb_range)
-            print(img.cpu().numpy().shape)
-            img = np.transpose(img.cpu().numpy(), (1,2,0)).astype('uint8')
-            if post == 'LR':
-                #img = misc.imresize(img, size= self.args.scale, interp='bicubic')
-                img = misc.imresize(img, size= (img.shape[0]*self.args.scale, img.shape[1]*self.args.scale), interp='bicubic')
+            img = img[0].data.mul(255 / self.args.rgb_range)
+            img = np.transpose(img.cpu().numpy(), (1, 2, 0))
             if img.shape[2] == 1:
                 img = img.squeeze(axis=2)
             elif img.shape[2] == 3 and self.args.n_colors == 1:
-                img = sc.ycbcr2rgb(img)
+                img = sc.ycbcr2rgb(img.astype('float'))
+                img = (255 * img).round().astype('uint8')
+            if post == 'LR':
+                img = misc.imresize(img, size=self.args.scale*100, interp='bicubic')
             imageio.imwrite('{}{}.png'.format(filename, post), img)
 
     def start_log(self, train=True):

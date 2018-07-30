@@ -78,11 +78,9 @@ class SRData(data.Dataset):
         else:
             lr, hr, filename = self._load_file(idx)
         lr, hr = self.get_patch(lr, hr)
-        if self.train:
-            lr, hr = common.set_channel(lr, hr, n_channels=self.args.n_colors)
-        
+        lr, hr = common.set_channel(lr, hr, n_channels=self.args.n_colors)
         lr_tensor, hr_tensor = common.np2Tensor(
-            lr, hr, rgb_range=self.args.rgb_range, n_colors=self.arg.n_colors
+            lr, hr, rgb_range=self.args.rgb_range, n_colors=self.args.n_colors
         )
         return lr_tensor, hr_tensor, filename
 
