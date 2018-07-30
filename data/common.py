@@ -50,16 +50,21 @@ def set_channel(*args, n_channels=3):
     return [_set_channel(a) for a in args]
 
 
-def np2Tensor(*args, rgb_range=255):
+def np2Tensor(*args, rgb_range=255, n_colors=1):
     def _np2Tensor(img):
         # NHWC -> NCHW
-        if img.shape[2] == 3:
+        if img.shape[2] == 3 and n_colors == 3:
             mean_RGB = np.array([123.68, 116.779, 103.939])
+            mean_RGB = mean_RGB.reshape([1, 3, 1, 1])
             img = img.astype('float64') - mean_RGB
-        else:
+        elif img.shape[2] == 3 and n_colors == 1:
             mean_YCbCr = np.array([109, 0, 0])
+            mean_YCbCr = mean_YCbCr.reshape([1, 3, 1, 1])
             img = img.astype('float64') - mean_YCbCr
-        
+        else:
+            mean_YCbCr = np.array([109])
+            img = img.astype('float64') - mean_YCbCr
+
         np_transpose = np.ascontiguousarray(img.transpose((2, 0, 1)))
         tensor = torch.from_numpy(np_transpose).float()
         tensor.mul_(rgb_range / 255)
@@ -76,7 +81,7 @@ def augment(*args, hflip=True, rot=True):
     def _augment(img):
         if hflip: img = img[:, ::-1, :]
         if vflip: img = img[::-1, :, :]
-        if rot90: img = img.transpose(1, 0, 2)
+        if rot90: img = img.rot90()
         
         return img
 

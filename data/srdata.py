@@ -82,7 +82,7 @@ class SRData(data.Dataset):
             lr, hr = common.set_channel(lr, hr, n_channels=self.args.n_colors)
         
         lr_tensor, hr_tensor = common.np2Tensor(
-            lr, hr, rgb_range=self.args.rgb_range
+            lr, hr, rgb_range=self.args.rgb_range, n_colors=self.arg.n_colors
         )
         return lr_tensor, hr_tensor, filename
 
@@ -139,6 +139,3 @@ class SRData(data.Dataset):
             hr = hr[0:ih * scale, 0:iw * scale]
 
         return lr, hr
-
-    def set_scale(self, idx_scale):
-        self.idx_scale = idx_scale

@@ -2,7 +2,7 @@ def set_template(args):
     if args.template == 'SY':
         args.data_train = 'CDVL100'
         args.dir_data = '../../Dataset'
-        args.data_test = 'Set5'
+        args.data_test = 'Set14'
         args.dir_data_test = '../../Dataset'
         args.process = True
     elif args.template == 'JH':

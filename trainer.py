@@ -83,14 +83,16 @@ class Trainer:
         with torch.no_grad():
             tqdm_test = tqdm(self.loader_test, ncols=80)
             for idx_img, (lr, hr, filename) in enumerate(tqdm_test):
+                ycbcr_flag = False
                 if self.args.n_colors == 1 and lr.size()[1] == 3:
                     print("converting to YCbCr")
                     # If n_colors is 1, split image into Y,Cb,Cr
-                    lr_ycbcr = lr.clone()
+                    ycbcr_flag =True
+                    lr_cbcr = lr[:, 1:, :, :]
                     lr = lr[:, 0:1, :, :]
                     # TODO: need to postprocess sr_cbcr
                     sr_cbcr = _torch_imresize(lr_ycbcr, self.args.scale)[:, 1:, :, :].to(self.device)
-                    hr_ycbcr = hr.clone()
+                    hr_cbcr = hr[:, 1:, :, :]
                     hr = hr[:, 0:1, :, :]
 
                 filename = filename[0]
@@ -101,12 +103,12 @@ class Trainer:
                 PSNR = utils.calc_psnr(self.args, sr, hr)
                 self.ckp.report_log(PSNR, train=False)
                 sr = utils.postprocess(sr, self.args.rgb_range, self.device)
+                lr = utils.postprocess(lr, self.args.rgb_range, self.device)
+                hr = utils.postprocess(hr, self.args.rgb_range, self.device)
 
-                #if self.args.n_colors == 1 and lr.size()[1] == 3:
-                if self.args.n_colors == 1 and lr.size()[1] == 1:
-                    lr = lr_ycbcr
-                    hr = hr_ycbcr
-                    #sr = torch.cat((sr, sr_cbcr), axis=1)
+                if ycbcr_flag:
+                    lr = torch.cat((lr, lr_cbcr), dim=1)
+                    hr = torch.cat((hr, hr_cbcr), dim=1)
                     sr = torch.cat((sr, sr_cbcr), dim=1)
 
                 save_list = [lr, hr, sr]
