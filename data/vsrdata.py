@@ -91,6 +91,7 @@ class VSRData(data.Dataset):
         ################################################
         elif self.args.template == "JH":
             self.apath = os.path.join(dir_data, self.name)
+            print("apath:", self.apath)
             self.dir_hr = os.path.join(self.apath, 'HR')
             self.dir_lr = os.path.join(self.apath, 'LR')
         else:
