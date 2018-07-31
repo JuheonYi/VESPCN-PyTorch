@@ -35,13 +35,13 @@ class MotionCompensator(nn.Module):
 
     def forward(self, frame_1, frame_2):
         # Coarse flow
-        coarse_in = tf.cat((frame_1, frame_2), dim=1)
+        coarse_in = torch.cat((frame_1, frame_2), dim=1)
         coarse_out = self.C_flow(coarse_in)
         
         frame_2_compensated_coarse = self.warp(frame_2, coarse_out)
         
         # Fine flow
-        fine_in = tf.cat((frame_1, frame_2, frame_2_compensated_coarse, coarse_out), dim=1)
+        fine_in = torch.cat((frame_1, frame_2, frame_2_compensated_coarse, coarse_out), dim=1)
         fine_out = self.F_flow(fine_in)
         
         flow = coarse_out + fine_out
