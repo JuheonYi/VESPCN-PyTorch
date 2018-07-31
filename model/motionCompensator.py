@@ -6,57 +6,49 @@ def make_model(args):
     return MotionCompensator(args)
 
 class MotionCompensator(nn.Module):
-#upscale_factor -> args
     def __init__(self, args):
         super(MotionCompensator, self).__init__()
         print("Creating Motion compensator")
-        
+
+        def _gconv(in_channels, out_channels, kernel_size=3, groups=1, stride=1, bias=True):
+            return nn.Conv2d(in_channels*groups, out_channels*groups, kernel_size, groups=groups, stride=stride,
+                             padding=(kernel_size // 2), bias=bias)
+
         # Coarse flow
-        self.c_conv1 = nn.Conv2d(args.n_colors, 24, kernel_size = 5, stride = 2, padding = 2)
-        self.c_conv2 = nn.Conv2d(24, 24, kernel_size = 3, padding = 1)
-        self.c_conv3 = nn.Conv2d(24, 24, kernel_size = 5, stride = 2, padding = 2)
-        self.c_conv4 = nn.Conv2d(24, 24, kernel_size = 3, padding = 1)
-        self.c_conv5 = nn.Conv2d(24, 32, kernel_size = 3, padding = 1)
-        self.c_pixel_shuffle = nn.PixelShuffle(4)
-        
+        self.coarse_flow = [_gconv(2, 24, kernel_size=5, groups=args.n_colors, stride=2), nn.ReLU(inplace=True)]
+        self.coarse_flow.extend([_gconv(24, 24, kernel_size=3, groups=args.n_colors), nn.ReLU(True)])
+        self.coarse_flow.extend([_gconv(24, 24, kernel_size=5, groups=args.n_colors, stride=2), nn.ReLU(True)])
+        self.coarse_flow.extend([_gconv(24, 24, kernel_size=3, groups=args.n_colors), nn.ReLU(True)])
+        self.coarse_flow.extend([_gconv(24, 32, kernel_size=3, groups=args.n_colors), nn.tanh()])
+        self.coarse_flow.extend([nn.PixelShuffle(4)])
+
+        self.C_flow = nn.Sequential(*self.coarse_flow)
+
         # Fine flow
-        self.f_conv1 = nn.Conv2d(args.n_colors, 24, kernel_size = 5, stride = 2, padding = 2)
-        self.f_conv2 = nn.Conv2d(24, 24, kernel_size = 3, padding = 1)
-        self.f_conv3 = nn.Conv2d(24, 24, kernel_size = 3, padding = 1)
-        self.f_conv4 = nn.Conv2d(24, 24, kernel_size = 3, padding = 1)
-        self.f_conv5 = nn.Conv2d(24, 8, kernel_size = 3, padding = 1)
-        self.f_pixel_shuffle = nn.PixelShuffle(2)
-        
-        self.relu = nn.ReLU()
-        self.tanh = nn.Tanh()
+        self.fine_flow = [_gconv(5, 24, kernel_size=5, groups=args.n_colors, stride=2), nn.ReLU(inplace=True)]
+        for _ in range(3):
+            self.fine_flow.extend([_gconv(24, 24, kernel_size=3, groups=args.n_colors), nn.ReLU(True)])
+        self.fine_flow.extend([_gconv(24, 8, kernel_size=3, groups=args.n_colors), nn.tanh()])
+        self.fine_flow.extend([nn.PixelShuffle(2)])
+
+        self.F_flow = nn.Sequential(*self.fine_flow)
 
     def forward(self, frame_1, frame_2):
         # Coarse flow
-        coarse_in = tf.cat((frame_1, frame_2), dim = 1)
-        coarse_in = self.relu(self.c_conv1(coarse_in))
-        coarse_in = self.relu(self.c_conv2(coarse_in))
-        coarse_in = self.relu(self.c_conv3(coarse_in))
-        coarse_in = self.relu(self.c_conv4(coarse_in))
-        coarse_in = self.tanh(self.c_conv5(coarse_in))
-        coarse_out = self.c_pixel_shuffle(coarse_in)
+        coarse_in = tf.cat((frame_1, frame_2), dim=1)
+        coarse_out = self.C_flow(coarse_in)
         
         frame_2_compensated_coarse = self.warp(frame_2, coarse_out)
         
         # Fine flow
-        fine_in = tf.cat((frame_1, frame_2, frame_2_compensated_coarse, coarse_out), dim = 1)
-        fine_in = self.relu(self.f_conv1(fine_in))
-        fine_in = self.relu(self.f_conv2(fine_in))
-        fine_in = self.relu(self.f_conv3(fine_in))
-        fine_in = self.relu(self.f_conv4(fine_in))
-        fine_in = self.tanh(self.f_conv5(fine_in))
-        fine_out = self.f_pixel_shuffle(fine_in)
+        fine_in = tf.cat((frame_1, frame_2, frame_2_compensated_coarse, coarse_out), dim=1)
+        fine_out = self.F_flow(fine_in)
         
         flow = coarse_out + fine_out
         frame_2_compensated = self.warp(frame_2, flow)
-        return x
-    
+        return frame_2_compensated
+
     def warp(self, img, flow):
-        # TODO: add warping function
         # https://discuss.pytorch.org/t/solved-how-to-do-the-interpolating-of-optical-flow/5019
         img_compensated = F.grid_sample(img, flow, mode='bilinear', padding_mode='zeros')
-        return img
+        return img_compensated

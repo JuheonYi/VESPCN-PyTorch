@@ -1,7 +1,11 @@
 # VESPCN-PyTorch
-PyTorch implementation of EPSCN [1]/VESPCN [2]
+PyTorch implementation of EPSCN [1]/VESPCN [2].
 
 ## **TODO list**
+- [x] Implement the SISR ESPCN network
+- [ ] Making dataloader for video SR
+- [ ] Complete the motion compensation network
+- [ ] Joining the ESPCN to motion compensation network
 
 ## **References**
 [1] W. Shi et al, “Real-time single image and video super-resolution using an efficient sub-pixel convolutional neural network,” IEEE CVPR 2016.
