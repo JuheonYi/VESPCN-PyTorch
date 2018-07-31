@@ -2,6 +2,7 @@ import os
 
 from data import common
 from data import srdata
+from data import vsrdata
 
 import numpy as np
 
@@ -11,7 +12,7 @@ import torch.utils.data as data
 # Data loader for CDVL videos
 class CDVL_VIDEO(vsrdata.VSRData):
     def __init__(self, args, name='CDVL', train=True):
-        super(CDVL, self).__init__(
+        super(CDVL_VIDEO, self).__init__(
             args, name=name, train=train
         )
         
@@ -24,8 +25,10 @@ class CDVL_VIDEO(vsrdata.VSRData):
         if self.args.template == "SY":
             super(CDVL100, self)._set_filesystem(dir_data)
 
-        if self.args.template == "JH":
+        if self.args.template == "JH_video":
             print("Loading CDVL videos")
             self.apath = os.path.join(dir_data, self.name)
             self.dir_hr = os.path.join(self.apath, 'HR')
             self.dir_lr = os.path.join(self.apath, 'LR')
+            print("HR path:", self.dir_hr)
+            print("LR path:", self.dir_lr)

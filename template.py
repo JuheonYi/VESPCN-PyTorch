@@ -13,6 +13,14 @@ def set_template(args):
         args.data_test = 'Set5'
         args.dir_data_test = '/home/johnyi/deeplearning/research/SISR_Datasets/test'
         args.process = True
+    elif args.template == 'JH_video':
+        args.model = "MotionCompensator"
+        args.epochs = 1000
+        args.data_train = 'CDVL_VIDEO'
+        args.dir_data = '/home/johnyi/deeplearning/research/VSR_Datasets/train'
+        args.data_test = 'vid4'
+        args.dir_data_test = '/home/johnyi/deeplearning/research/VSR_Datasets/test'
+        args.process = True
     else:
         # TODO: Download train/test data & modify args for real testing
         args.batch_size = 2
