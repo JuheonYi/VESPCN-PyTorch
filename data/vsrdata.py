@@ -17,8 +17,6 @@ class VSRData(data.Dataset):
         self.args = args
         self.name = name
         self.train = train
-        self.split = 'train' if train else 'test'
-        self.do_eval = True
         self.scale = args.scale
         self.idx_scale = 0
         self.n_seq = args.n_sequence
@@ -39,8 +37,9 @@ class VSRData(data.Dataset):
             self._set_filesystem(args.dir_data_test)
 
         self.images_hr, self.images_lr = self._scan()
+        self.n_videos = len(self.images_hr)
         if train and args.process:
-            self.data_hr, self.data_lr = self._load(self.images_hr, self.images_lr)
+            self.data_hr, self.data_lr = self._load(self.n_videos)
 
         if train:
             self.repeat = args.test_every // (self.num_video // args.batch_size)
@@ -53,21 +52,23 @@ class VSRData(data.Dataset):
         vid_hr_names = sorted(glob.glob(os.path.join(self.dir_hr, 'Video*')))
         vid_lr_names = sorted(glob.glob(os.path.join(self.dir_lr, 'Video*')))
         self.num_video = len(vid_hr_names)
-        print(self.num_video)  # TODO: Delete after testing!
+        assert len(vid_hr_names) == len(vid_lr_names)
+
         names_hr = []
         names_lr = []
-        for vid_hr_name, vid_lr_name in zip(vid_hr_names,vid_lr_names):
+        for vid_hr_name, vid_lr_name in zip(vid_hr_names, vid_lr_names):
             start = self._get_index(random.randint(0, self.img_range - self.n_seq))
             hr_dir_names = sorted(glob.glob(os.path.join(vid_hr_name, '*.png')))[start:start+self.n_seq]
             lr_dir_names = sorted(glob.glob(os.path.join(vid_lr_name, '*.png')))[start:start+self.n_seq]
             names_hr.append(hr_dir_names)
             names_lr.append(lr_dir_names)
+
         return names_hr, names_lr
 
-    def _load(self, names_hr, names_lr):
+    def _load(self, n_videos):
         data_lr = []
         data_hr = []
-        for idx in range(len(names_hr)):
+        for idx in range(n_videos):
             lrs, hrs, _ = self._load_file(idx)
             data_lr.append(lrs)
             data_hr.append(hrs)
@@ -138,15 +139,13 @@ class VSRData(data.Dataset):
         f_lrs = self.images_lr[idx]
 
         filenames = [os.path.splitext(os.path.basename(file))[0] for file in f_hrs]
-
-        hrs = np.array([cv2.imread(hr_name) for hr_name in f_hrs])
-        lrs = np.array([cv2.imread(lr_name) for lr_name in f_lrs])
-
+        hrs = np.array([imageio.imread(hr_name) for hr_name in f_hrs])
+        lrs = np.array([imageio.imread(lr_name) for lr_name in f_lrs])
 
         return lrs, hrs, filenames
 
     def _load_file_from_loaded_data(self, idx):
-        start = self._get_index(idx)
+        idx = self._get_index(idx)
         hrs = self.data_hr[idx]
         lrs = self.data_lr[idx]
         filenames = [os.path.splitext(os.path.split(name)[-1])[0] for name in self.images_hr[idx]]

@@ -62,9 +62,13 @@ target/
 # PyTorch
 *.pt
 *.pdf
-*.png
 *.txt
 *.swp
 *.vscode
 *.xml
 *.iml
+
+# Image
+*.png
+*.jpg
+*.jpeg
