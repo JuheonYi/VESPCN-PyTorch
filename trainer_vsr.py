@@ -38,6 +38,7 @@ class Trainer_VSR:
         return lrs.StepLR(self.optimizer, **kwargs)
 
     def train(self):
+        print("VSR training")
         self.scheduler.step()
         epoch = self.scheduler.last_epoch + 1
         lr = self.scheduler.get_lr()[0]
