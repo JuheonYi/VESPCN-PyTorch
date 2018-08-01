@@ -15,32 +15,30 @@ class MotionCompensator(nn.Module):
                              padding=(kernel_size // 2), bias=bias)
 
         # Coarse flow
-        self.coarse_flow = [_gconv(2, 24, kernel_size=5, groups=args.n_colors, stride=2), nn.ReLU(inplace=True)]
-        self.coarse_flow.extend([_gconv(24, 24, kernel_size=3, groups=args.n_colors), nn.ReLU(True)])
-        self.coarse_flow.extend([_gconv(24, 24, kernel_size=5, groups=args.n_colors, stride=2), nn.ReLU(True)])
-        self.coarse_flow.extend([_gconv(24, 24, kernel_size=3, groups=args.n_colors), nn.ReLU(True)])
-        self.coarse_flow.extend([_gconv(24, 32, kernel_size=3, groups=args.n_colors), nn.Tanh()])
-        self.coarse_flow.extend([nn.PixelShuffle(4)])
+        coarse_flow = [_gconv(2, 24, kernel_size=5, groups=args.n_colors, stride=2), nn.ReLU(inplace=True)]
+        coarse_flow.extend([_gconv(24, 24, kernel_size=3, groups=args.n_colors), nn.ReLU(True)])
+        coarse_flow.extend([_gconv(24, 24, kernel_size=5, groups=args.n_colors, stride=2), nn.ReLU(True)])
+        coarse_flow.extend([_gconv(24, 24, kernel_size=3, groups=args.n_colors), nn.ReLU(True)])
+        coarse_flow.extend([_gconv(24, 32, kernel_size=3, groups=args.n_colors), nn.Tanh()])
+        coarse_flow.extend([nn.PixelShuffle(4)])
 
-        self.C_flow = nn.Sequential(*self.coarse_flow)
+        self.C_flow = nn.Sequential(*coarse_flow)
 
         # Fine flow
-        self.fine_flow = [_gconv(5, 24, kernel_size=5, groups=args.n_colors, stride=2), nn.ReLU(inplace=True)]
+        fine_flow = [_gconv(5, 24, kernel_size=5, groups=args.n_colors, stride=2), nn.ReLU(inplace=True)]
         for _ in range(3):
-            self.fine_flow.extend([_gconv(24, 24, kernel_size=3, groups=args.n_colors), nn.ReLU(True)])
-        self.fine_flow.extend([_gconv(24, 8, kernel_size=3, groups=args.n_colors), nn.Tanh()])
-        self.fine_flow.extend([nn.PixelShuffle(2)])
+            fine_flow.extend([_gconv(24, 24, kernel_size=3, groups=args.n_colors), nn.ReLU(True)])
+        fine_flow.extend([_gconv(24, 8, kernel_size=3, groups=args.n_colors), nn.Tanh()])
+        fine_flow.extend([nn.PixelShuffle(2)])
 
-        self.F_flow = nn.Sequential(*self.fine_flow)
-        
-        #self.conv = nn.Conv2d(64, 32, kernel_size = 3, padding = 1)
+        self.F_flow = nn.Sequential(*fine_flow)
 
     def forward(self, frame_1, frame_2):
         # Coarse flow
         coarse_in = torch.cat((frame_1, frame_2), dim=1)
         coarse_out = self.C_flow(coarse_in)
         
-        frame_2_compensated_coarse = self.warp(frame_2, coarse_out)
+        frame_2_compensated_coarse = self.warp(frame_1, coarse_out)
         
         # Fine flow
         fine_in = torch.cat((frame_1, frame_2, frame_2_compensated_coarse, coarse_out), dim=1)
@@ -54,5 +52,5 @@ class MotionCompensator(nn.Module):
     def warp(self, img, flow):
         # https://discuss.pytorch.org/t/solved-how-to-do-the-interpolating-of-optical-flow/5019
         # permute flow N C H W -> N H W C
-        img_compensated = F.grid_sample(img, flow.permute(0, 2, 3, 1), mode='bilinear', padding_mode='zeros')
+        img_compensated = F.grid_sample(img, flow.permute(0, 2, 3, 1), padding_mode='border')
         return img_compensated

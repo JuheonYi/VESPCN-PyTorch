@@ -90,6 +90,8 @@ class VSRData(data.Dataset):
         data_hr = []
         for idx in range(n_videos):
             lrs, hrs, _ = self._load_file(idx)
+            hrs = np.array([imageio.imread(hr_name) for hr_name in self.images_hr[idx]])
+            lrs = np.array([imageio.imread(lr_name) for lr_name in self.images_lr[idx]])
             data_lr.append(lrs)
             data_hr.append(hrs)
         return data_hr, data_lr
@@ -136,7 +138,7 @@ class VSRData(data.Dataset):
         if self.train:
             return len(self.images_hr) * self.repeat
         else:
-            #if test, call all possible video sequence fragments
+            # if test, call all possible video sequence fragments
             return sum(self.n_frames_video) - (self.n_seq - 1) * len(self.n_frames_video)
 
     def _get_index(self, idx):
@@ -145,19 +147,39 @@ class VSRData(data.Dataset):
         else:
             return idx
 
+    def _find_video_num(self, idx, n_frame):
+        for i, j in enumerate(n_frame):
+            if idx < j:
+                return i, idx
+            else:
+                idx -= j
+
     def _load_file(self, idx):
         """
         Read image from given image directory
         Return: n_seq * H * W * C numpy array and list of corresponding filenames
         """
-        f_hrs = self.images_hr[idx]
-        f_lrs = self.images_lr[idx]
 
-        if self.args.load_all_videos:
-            start = self._get_index(random.randint(0, self.img_range - self.n_seq + 1))
+        if self.train:
+            f_hrs = self.images_hr[idx]
+            f_lrs = self.images_lr[idx]
 
-            pass
+            if self.args.load_all_videos:
+                start = self._get_index(random.randint(0, self.n_frames_video[idx] - self.n_seq + 1))
+                filenames = [os.path.splitext(os.path.basename(file))[0] for file in f_hrs[start:start+self.n_seq]]
+                hrs = np.array([imageio.imread(hr_name) for hr_name in f_hrs[start:start+self.n_seq]])
+                lrs = np.array([imageio.imread(lr_name) for lr_name in f_lrs[start:start+self.n_seq]])
+
+            else:
+                filenames = [os.path.splitext(os.path.basename(file))[0] for file in f_hrs]
+                hrs = np.array([imageio.imread(hr_name) for hr_name in f_hrs])
+                lrs = np.array([imageio.imread(lr_name) for lr_name in f_lrs])
+
         else:
+            n_poss_frames = [n - self.n_seq + 1 for n in self.n_frames_video]
+            video_idx, frame_idx = self._find_video_num(idx, n_poss_frames)
+            f_hrs = self.images_hr[video_idx][frame_idx:frame_idx+self.n_seq]
+            f_lrs = self.images_lr[video_idx][frame_idx:frame_idx+self.n_seq]
             filenames = [os.path.splitext(os.path.basename(file))[0] for file in f_hrs]
             hrs = np.array([imageio.imread(hr_name) for hr_name in f_hrs])
             lrs = np.array([imageio.imread(lr_name) for lr_name in f_lrs])
@@ -165,13 +187,6 @@ class VSRData(data.Dataset):
         return lrs, hrs, filenames
 
     def _load_file_from_loaded_data(self, idx):
-        def _find_video_num(idx, n_frame):
-            for i, j in enumerate(n_frame):
-                if idx < j:
-                    return i, idx
-                else:
-                    idx -= j
-
         idx = self._get_index(idx)
 
         if self.args.load_all_videos or not self.train:
@@ -183,7 +198,7 @@ class VSRData(data.Dataset):
                 lrs = self.data_lr[idx][start:start+self.n_seq]
             else:
                 n_poss_frames = [n - self.n_seq + 1 for n in self.n_frames_video]
-                video_idx, frame_idx = _find_video_num(idx, n_poss_frames)
+                video_idx, frame_idx = self._find_video_num(idx, n_poss_frames)
                 hrs = self.data_hr[video_idx][frame_idx:frame_idx+self.n_seq]
                 lrs = self.data_lr[video_idx][frame_idx:frame_idx+self.n_seq]
 

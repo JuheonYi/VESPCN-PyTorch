@@ -63,8 +63,12 @@ class Logger:
         self.plot_psnr_log(epoch)
 
     def save_images(self, filename, save_list, scale):
-        filename = '{}/result/{}/{}_x{}_'.format(self.dir, self.args.data_test, filename, scale)
-        postfix = ['LR', 'HR', 'SR']
+        if self.args.task == 'Image':
+            filename = '{}/result/{}/{}_x{}_'.format(self.dir, self.args.data_test, filename, scale)
+            postfix = ['LR', 'HR', 'SR']
+        elif self.args.task == 'MC':
+            filename = '{}/result/{}/{}_'.format(self.dir, self.args.data_test, filename)
+            postfix = ['f1', 'f2', 'f2c']
         for img, post in zip(save_list, postfix):
             img = img[0].data.mul(255 / self.args.rgb_range)
             img = np.transpose(img.cpu().numpy(), (1, 2, 0))

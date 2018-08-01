@@ -1,16 +1,12 @@
-import os
-import math
 import time
-import imageio
 import decimal
-
 import numpy as np
-from scipy import misc
 
 import torch
 import torch.optim as optim
 import torch.optim.lr_scheduler as lrs
 import torch.nn as nn
+import torch.nn.functional as F
 from tqdm import tqdm
 
 import utils
@@ -51,27 +47,21 @@ class Trainer_MC:
 
         self.model.train()
         self.ckp.start_log()
-        for batch, (lr, hr, _) in enumerate(self.loader_train):
-            #print(lr.shape, hr.shape) #lr: [batch_size, n_seq, 3, patch_size, patch_size]
-            if self.args.n_colors == 1 and lr.size()[2] == 3:
-                lr = lr[:, :, 0:1, :, :]
-                hr = hr[:, :, 0:1, :, :]
-
-            lr = lr.to(self.device)
-            hr = hr.to(self.device)
-            
+        for batch, (lr, _, _) in enumerate(self.loader_train):
+            # tensor size of lr : B*n*C*H*W (H, W = args.patch_size)
             self.optimizer.zero_grad()
-            frame1 = torch.squeeze(lr[:,0:1,:,:,:], dim = 1)
-            frame2 = torch.squeeze(lr[:,1:2,:,:,:], dim = 1)
+            if self.args.n_colors == 1 and lr.size()[-3] == 3:
+                lr = lr[:, :, 0:1, :, :]
+            lr = lr.to(self.device)
+            frame1, frame2 = lr[:, 0], lr[:, 1]
             frame2_compensated, flow = self.model(frame1, frame2)
-
             loss = self.loss(frame2_compensated, frame1)
             
             self.ckp.report_log(loss.item())
             loss.backward()
             self.optimizer.step()
 
-            if batch % self.args.print_every == 0:
+            if (batch + 1) % self.args.print_every == 0:
                 self.ckp.write_log('[{}/{}]\tLoss : {:.5f}'.format(
                     (batch + 1) * self.args.batch_size, len(self.loader_train.dataset),
                     self.ckp.loss_log[-1] / (batch + 1)))
@@ -79,12 +69,6 @@ class Trainer_MC:
         self.ckp.end_log(len(self.loader_train))
 
     def test(self):
-        def _torch_imresize(ttensor, scale):
-            nparray = ttensor.data.cpu().numpy()
-            nparray = np.transpose(np.squeeze(nparray, axis=0), (1,2,0))
-            nparray = misc.imresize(nparray, size=scale*100, interp='bicubic')
-            nparray = np.expand_dims(np.transpose(nparray, (2,0,1)), axis=0)
-            return torch.from_numpy(nparray).float()
 
         epoch = self.scheduler.last_epoch + 1
         self.ckp.write_log('\nEvaluation:')
@@ -92,37 +76,32 @@ class Trainer_MC:
         self.ckp.start_log(train=False)
         with torch.no_grad():
             tqdm_test = tqdm(self.loader_test, ncols=80)
-            for idx_img, (lr, hr, filename) in enumerate(tqdm_test):
-                print(lr.shape)
-                print(hr.shape)
+            for idx_img, (lr, _, filename) in enumerate(tqdm_test):
                 ycbcr_flag = False
-                if self.args.n_colors == 1 and lr.size()[1] == 3:
-                    print("converting to YCbCr")
-                    # If n_colors is 1, split image into Y,Cb,Cr
-                    ycbcr_flag = True
-                    sr_cbcr = _torch_imresize(lr, self.args.scale)[:, 1:, :, :].to(self.device)
-                    lr_cbcr = lr[:, 1:, :, :].to(self.device)
-                    lr = lr[:, 0:1, :, :]
-                    hr_cbcr = hr[:, 1:, :, :].to(self.device)
-                    hr = hr[:, 0:1, :, :]
-
                 filename = filename[0]
                 lr = lr.to(self.device)
-                hr = hr.to(self.device)
+                frame1, frame2 = lr[:, 0], lr[:, 1]
+                if self.args.n_colors == 1 and lr.size()[-3] == 3:
+                    ycbcr_flag = True
+                    frame1_cbcr = frame1[:, 1:]
+                    frame2_cbcr = frame2[:, 1:]
+                    frame1 = frame1[:, 0:1]
+                    frame2 = frame2[:, 0:1]
 
-                sr = self.model(lr)
-                PSNR = utils.calc_psnr(self.args, sr, hr)
+                frame2_compensated, flow = self.model(frame1, frame2)
+
+                PSNR = utils.calc_psnr(self.args, frame1, frame2_compensated)
                 self.ckp.report_log(PSNR, train=False)
-                lr, hr, sr = utils.postprocess(lr, hr, sr,
-                                               rgb_range=self.args.rgb_range,
-                                               ycbcr_flag=ycbcr_flag, device=self.device)
+                frame1, frame2c = utils.postprocess(frame1, frame2_compensated, rgb_range=self.args.rgb_range,
+                                                    ycbcr_flag=ycbcr_flag, device=self.device)
 
                 if ycbcr_flag:
-                    lr = torch.cat((lr, lr_cbcr), dim=1)
-                    hr = torch.cat((hr, hr_cbcr), dim=1)
-                    sr = torch.cat((sr, hr_cbcr), dim=1)
+                    frame1 = torch.cat((frame1, frame1_cbcr), dim=1)
+                    frame2 = torch.cat((frame2, frame2_cbcr), dim=1)
+                    frame2_cbcr_c = F.grid_sample(frame2_cbcr, flow.permute(0, 2, 3, 1), padding_mode='border')
+                    frame2c = torch.cat((frame2c, frame2_cbcr_c), dim=1)
 
-                save_list = [lr, hr, sr]
+                save_list = [frame1, frame2, frame2c]
                 if self.args.save_images:
                     self.ckp.save_images(filename, save_list, self.args.scale)
 
