@@ -7,6 +7,8 @@ parser.add_argument('--debug', action='store_true',
                     help='Enables debug mode')
 parser.add_argument('--template', default='.',
                     help='You can set various templates in option.py')
+parser.add_argument('--task', type=str, default='Video',
+                    help='Type of task (Image/Video)')
 
 # Hardware specifications
 parser.add_argument('--n_threads', type=int, default=6,
@@ -45,11 +47,9 @@ parser.add_argument('--no_augment', action='store_true',
                     help='do not use data augmentation')
 
 # Video SR parameters
-parser.add_argument('--n_videos', type=int, default=100,
-                    help='number of videos to load')
 parser.add_argument('--n_sequence', type=int, default=1,
                     help='length of image sequence per video')
-parser.add_argument('--load_all_videos', default=True,
+parser.add_argument('--load_all_videos', default=True, action='store_false',
                     help='whether to load all videos on dataloader')
 
 

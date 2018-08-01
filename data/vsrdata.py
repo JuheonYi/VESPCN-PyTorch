@@ -93,11 +93,6 @@ class VSRData(data.Dataset):
             data_lr.append(lrs)
             data_hr.append(hrs)
         return data_hr, data_lr
-        """
-        data_lr = [imageio.imread(filename) for filename in names_lr]
-        data_hr = [imageio.imread(filename) for filename in names_hr]
-        return data_hr, data_lr
-        """
 
     def _set_filesystem(self, dir_data):
         self.apath = os.path.join(dir_data, self.name)
