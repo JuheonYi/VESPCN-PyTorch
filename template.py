@@ -18,7 +18,7 @@ def set_template(args):
         args.epochs = 1000
         args.data_train = 'CDVL_VIDEO'
         args.dir_data = '/home/johnyi/deeplearning/research/VSR_Datasets/train'
-        args.data_test = 'vid4'
+        args.data_test = 'Vid4'
         args.dir_data_test = '/home/johnyi/deeplearning/research/VSR_Datasets/test'
         args.process = True
     else:
