@@ -46,7 +46,7 @@ class Trainer:
 
         self.model.train()
         self.ckp.start_log()
-        for batch, (lr, hr, _) in enumerate(self.loader_train):
+        for batch, (lr, _, hr, _) in enumerate(self.loader_train):
             if self.args.n_colors == 1 and lr.size()[1] == 3:
                 lr = lr[:, 0:1, :, :]
                 hr = hr[:, 0:1, :, :]
@@ -82,24 +82,27 @@ class Trainer:
         self.ckp.start_log(train=False)
         with torch.no_grad():
             tqdm_test = tqdm(self.loader_test, ncols=80)
-            for idx_img, (lr, hr, filename) in enumerate(tqdm_test):
+            bic_PSNR = 0
+            for idx_img, (lr, lre, hr, filename) in enumerate(tqdm_test):
                 ycbcr_flag = False
                 if self.args.n_colors == 1 and lr.size()[1] == 3:
-                    print("converting to YCbCr")
                     # If n_colors is 1, split image into Y,Cb,Cr
                     ycbcr_flag = True
-                    sr_cbcr = _torch_imresize(lr, self.args.scale)[:, 1:, :, :].to(self.device)
+                    sr_cbcr = lre[:, 1:, :, :].to(self.device)
+                    lre = lre[:, 0:1, :, :]
                     lr_cbcr = lr[:, 1:, :, :].to(self.device)
                     lr = lr[:, 0:1, :, :]
                     hr_cbcr = hr[:, 1:, :, :].to(self.device)
                     hr = hr[:, 0:1, :, :]
 
                 filename = filename[0]
+                lre = lre.to(self.device)
                 lr = lr.to(self.device)
                 hr = hr.to(self.device)
 
                 sr = self.model(lr)
                 PSNR = utils.calc_psnr(self.args, sr, hr)
+                bic_PSNR += utils.calc_psnr(self.args, lre, hr)
                 self.ckp.report_log(PSNR, train=False)
                 lr, hr, sr = utils.postprocess(lr, hr, sr,
                                                rgb_range=self.args.rgb_range,
@@ -108,7 +111,7 @@ class Trainer:
                 if ycbcr_flag:
                     lr = torch.cat((lr, lr_cbcr), dim=1)
                     hr = torch.cat((hr, hr_cbcr), dim=1)
-                    sr = torch.cat((sr, hr_cbcr), dim=1)
+                    sr = torch.cat((sr, sr_cbcr), dim=1)
 
                 save_list = [lr, hr, sr]
                 if self.args.save_images:
@@ -119,6 +122,7 @@ class Trainer:
             self.ckp.write_log('[{}]\taverage PSNR: {:.3f} (Best: {:.3f} @epoch {})'.format(
                                 self.args.data_test, self.ckp.psnr_log[-1],
                                 best[0], best[1] + 1))
+            print('Bicubic PSNR: {:.3f}'.format(bic_PSNR / len(self.loader_test)))
             if not self.args.test_only:
                 self.ckp.save(self, epoch, is_best=(best[1] + 1 == epoch))
 

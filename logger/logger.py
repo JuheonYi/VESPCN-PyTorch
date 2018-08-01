@@ -58,6 +58,7 @@ class Logger:
     def save(self, trainer, epoch, is_best):
         trainer.model.save(self.dir, is_best)
         torch.save(self.loss_log, os.path.join(self.dir, 'loss_log.pt'))
+        torch.save(self.psnr_log, os.path.join(self.dir, 'psnr_log.pt'))
         self.plot_loss_log(epoch)
         self.plot_psnr_log(epoch)
 
