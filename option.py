@@ -8,7 +8,7 @@ parser.add_argument('--debug', action='store_true',
 parser.add_argument('--template', default='.',
                     help='You can set various templates in option.py')
 parser.add_argument('--task', type=str, default='Video',
-                    help='Type of task (Image/Video)')
+                    help='Type of task (Image/Video/MC)')
 
 # Hardware specifications
 parser.add_argument('--n_threads', type=int, default=6,
@@ -31,7 +31,7 @@ parser.add_argument('--data_train', type=str, default='DIV2K',
                     help='train dataset name')
 parser.add_argument('--data_test', type=str, default='Set5',
                     help='test dataset name')
-parser.add_argument('--data_range', type=str, default='1-1/91-100',
+parser.add_argument('--data_range', type=str, default='1-10/91-100',
                     help='train/test data range')
 parser.add_argument('--process', action='store_true',
                     help='if onces, load all photos at once')
@@ -47,7 +47,7 @@ parser.add_argument('--no_augment', action='store_true',
                     help='do not use data augmentation')
 
 # Video SR parameters
-parser.add_argument('--n_sequence', type=int, default=2,
+parser.add_argument('--n_sequence', type=int, default=3,
                     help='length of image sequence per video')
 parser.add_argument('--load_all_videos', default=True, action='store_false',
                     help='whether to load all videos on dataloader')
