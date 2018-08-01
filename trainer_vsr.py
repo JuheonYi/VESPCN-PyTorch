@@ -48,16 +48,19 @@ class Trainer_VSR:
         self.model.train()
         self.ckp.start_log()
         for batch, (lr, hr, _) in enumerate(self.loader_train):
-            if self.args.n_colors == 1 and lr.size()[1] == 3:
-                lr = lr[:, 0:1, :, :]
-                hr = hr[:, 0:1, :, :]
+            #print(lr.shape, hr.shape) #lr: [batch_size, n_seq, 3, patch_size, patch_size]
+            if self.args.n_colors == 1 and lr.size()[2] == 3:
+                lr = lr[:, :, 0:1, :, :]
+                hr = hr[:, :, 0:1, :, :]
 
             lr = lr.to(self.device)
             hr = hr.to(self.device)
 
             self.optimizer.zero_grad()
-            sr = self.model(lr)
-            loss = self.loss(sr, hr)
+            frame1 = torch.squeeze(lr[:,0:1,:,:,:], dim = 1)
+            frame2 = torch.squeeze(lr[:,1:2,:,:,:], dim = 1)
+            frame2_compensated, flow = self.model(frame1, frame2)
+            loss = self.loss(frame1, frame2_compensated)
             self.ckp.report_log(loss.item())
             loss.backward()
             self.optimizer.step()

@@ -46,9 +46,11 @@ class MotionCompensator(nn.Module):
         
         flow = coarse_out + fine_out
         frame_2_compensated = self.warp(frame_2, flow)
-        return frame_2_compensated
+        return frame_2_compensated, flow
 
     def warp(self, img, flow):
         # https://discuss.pytorch.org/t/solved-how-to-do-the-interpolating-of-optical-flow/5019
+        print(img.shape)
+        print(flow.shape)
         img_compensated = F.grid_sample(img, flow, mode='bilinear', padding_mode='zeros')
         return img_compensated

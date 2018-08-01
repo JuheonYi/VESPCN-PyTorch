@@ -37,13 +37,16 @@ class VSRData(data.Dataset):
             self._set_filesystem(args.dir_data_test)
 
         self.images_hr, self.images_lr = self._scan()
+        self.num_video = len(self.images_hr)
+        print("Number of videos to load:", self.num_video)
 
         self.n_videos = len(self.images_hr)
         if train and args.process:
             self.data_hr, self.data_lr = self._load(self.n_videos)
 
+        self.args.batch_size = min(args.batch_size, self.num_video)
         if train:
-            self.repeat = args.test_every // (self.num_video // args.batch_size)
+            self.repeat = args.test_every // (self.num_video // self.args.batch_size)
 
     # Below functions as used to prepare images
     def _scan(self):
@@ -59,17 +62,13 @@ class VSRData(data.Dataset):
             vid_lr_names = sorted(glob.glob(os.path.join(self.dir_lr,'*')))
             print("Number of test videos", len(vid_hr_names))
 
-        self.num_video = len(vid_hr_names)
         assert len(vid_hr_names) == len(vid_lr_names)
 
         names_hr = []
         names_lr = []
         if self.args.load_all_videos == True:
             # Load videos all at once
-            #for vid_hr_name, vid_lr_name in zip(vid_hr_names, vid_lr_names):
-            for i in range(0,1):
-                vid_hr_name = vid_hr_names[i]
-                vid_lr_name = vid_lr_names[i]
+            for vid_hr_name, vid_lr_name in zip(vid_hr_names, vid_lr_names):
                 hr_dir_names = sorted(glob.glob(os.path.join(vid_hr_name, '*.png')))
                 lr_dir_names = sorted(glob.glob(os.path.join(vid_lr_name, '*.png')))
                 names_hr.append(hr_dir_names)
@@ -125,6 +124,7 @@ class VSRData(data.Dataset):
         else:
             lrs, hrs, filenames = self._load_file(idx)
         patches = [self.get_patch(lr, hr) for lr, hr in zip(lrs, hrs)]
+
         lrs = np.array([patch[0] for patch in patches])
         hrs = np.array([patch[1] for patch in patches])
         if self.train:
@@ -137,7 +137,8 @@ class VSRData(data.Dataset):
         hr_tensors = common.np2Tensor(
             *hrs,  rgb_range=self.args.rgb_range, n_colors=self.args.n_colors
         )
-        return lr_tensors, hr_tensors, filenames
+        
+        return torch.stack(lr_tensors), torch.stack(hr_tensors), filenames
 
     def __len__(self):
         if self.train:
@@ -168,9 +169,17 @@ class VSRData(data.Dataset):
 
     def _load_file_from_loaded_data(self, idx):
         idx = self._get_index(idx)
-        idx = 0
-        hrs = self.data_hr[idx]
-        lrs = self.data_lr[idx]
+
+        if self.args.load_all_videos:
+            # If we loaded videos all at once, randomly select contiguous n_seq frames
+            start = self._get_index(random.randint(0, self.img_range - self.n_seq))
+            hrs = self.data_hr[idx][start:start+self.n_seq]
+            lrs = self.data_lr[idx][start:start+self.n_seq]
+        else:
+            # If we loaded only n_seq frames, just load all frames
+            hrs = self.data_hr[idx]
+            lrs = self.data_lr[idx]
+
         filenames = [os.path.splitext(os.path.split(name)[-1])[0] for name in self.images_hr[idx]]
 
         return lrs, hrs, filenames
