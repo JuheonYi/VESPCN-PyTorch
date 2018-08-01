@@ -64,7 +64,9 @@ class Trainer_VSR:
             frame1 = torch.squeeze(lr[:,0:1,:,:,:], dim = 1)
             frame2 = torch.squeeze(lr[:,1:2,:,:,:], dim = 1)
             frame2_compensated, flow = self.model(frame1, frame2)
-            loss = self.loss(frame1, frame2_compensated)
+
+            loss = self.loss(frame2_compensated, frame1)
+            
             self.ckp.report_log(loss.item())
             loss.backward()
             self.optimizer.step()

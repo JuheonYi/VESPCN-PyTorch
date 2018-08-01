@@ -32,6 +32,8 @@ class MotionCompensator(nn.Module):
         self.fine_flow.extend([nn.PixelShuffle(2)])
 
         self.F_flow = nn.Sequential(*self.fine_flow)
+        
+        #self.conv = nn.Conv2d(64, 32, kernel_size = 3, padding = 1)
 
     def forward(self, frame_1, frame_2):
         # Coarse flow
@@ -46,11 +48,11 @@ class MotionCompensator(nn.Module):
         
         flow = coarse_out + fine_out
         frame_2_compensated = self.warp(frame_2, flow)
+
         return frame_2_compensated, flow
 
     def warp(self, img, flow):
         # https://discuss.pytorch.org/t/solved-how-to-do-the-interpolating-of-optical-flow/5019
-        print(img.shape)
-        print(flow.shape)
-        img_compensated = F.grid_sample(img, flow, mode='bilinear', padding_mode='zeros')
+        # permute flow N C H W -> N H W C
+        img_compensated = F.grid_sample(img, flow.permute(0, 2, 3, 1), mode='bilinear', padding_mode='zeros')
         return img_compensated

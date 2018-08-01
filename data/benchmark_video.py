@@ -36,7 +36,7 @@ class Benchmark_video(vsrdata.VSRData):
             print("test video path (LR):", self.dir_lr)
 
     def _load_file(self, idx):
-        lr, hr, filename = super(Benchmark, self)._load_file(idx=idx)
+        lr, hr, filename = super(Benchmark_video, self)._load_file(idx=idx)
         if self.name == 'Set14':
             if lr.ndim == 2:
                 lr = np.repeat(np.expand_dims(lr, axis=2), 3, axis=2)
