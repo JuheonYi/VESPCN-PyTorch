@@ -1,10 +1,6 @@
 import os
 
 from data import common
-<<<<<<< HEAD
-=======
-from data import srdata
->>>>>>> refs/remotes/origin/dataloader_modify
 from data import vsrdata
 
 import numpy as np

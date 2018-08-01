@@ -1,11 +1,11 @@
 import os
 import glob
-import time
-import skimage.color as sc
-from data import common
-import pickle
-import numpy as np
 import imageio
+import skimage.color as sc
+import numpy as np
+from scipy import misc
+
+from data import common
 
 import torch
 import torch.utils.data as data
@@ -38,6 +38,7 @@ class SRData(data.Dataset):
 
         self.images_hr, self.images_lr = self._scan()
         if train and args.process:
+            print('Making a large array...')
             self.data_hr, self.data_lr = self._load(self.images_hr, self.images_lr)
 
         if train:
@@ -78,12 +79,16 @@ class SRData(data.Dataset):
             lr, hr, filename = self._load_file_from_loaded_data(idx)
         else:
             lr, hr, filename = self._load_file(idx)
-        lr, hr = self.get_patch(lr, hr)
-        lr, hr = common.set_channel(lr, hr, n_channels=self.args.n_colors)
-        lr_tensor, hr_tensor = common.np2Tensor(
-            lr, hr, rgb_range=self.args.rgb_range, n_colors=self.args.n_colors
+        if self.train:
+            lr_extend = hr
+        else:
+            lr_extend = misc.imresize(lr, size=self.args.scale*100, interp='bicubic')
+        lr, lr_extend, hr = self.get_patch(lr, lr_extend, hr)
+        lr, lr_extend, hr = common.set_channel(lr, lr_extend, hr, n_channels=self.args.n_colors)
+        lr_tensor, lre_tensor, hr_tensor = common.np2Tensor(
+            lr, lr_extend, hr, rgb_range=self.args.rgb_range, n_colors=self.args.n_colors
         )
-        return lr_tensor, hr_tensor, filename
+        return lr_tensor, lre_tensor, hr_tensor, filename
 
     def __len__(self):
         if self.train:
@@ -119,22 +124,22 @@ class SRData(data.Dataset):
 
         return lr, hr, filename
 
-    def get_patch(self, lr, hr):
+    def get_patch(self, lr, lr_extend, hr):
         """
         Returns patches for multiple scales
         """
         scale = self.scale
         if self.train:
-            lr, hr = common.get_patch(
-                lr,
-                hr,
+            lr, lr_extend, hr = common.get_patch(
+                lr, lr_extend, hr,
                 patch_size=self.args.patch_size,
                 scale=scale,
             )
             if not self.args.no_augment:
-                lr, hr = common.augment(lr, hr)
+                lr, lr_extend, hr = common.augment(lr, lr_extend, hr)
         else:
             ih, iw = lr.shape[:2]
+            lr_extend = lr_extend[0:ih * scale, 0:iw * scale]
             hr = hr[0:ih * scale, 0:iw * scale]
 
-        return lr, hr
+        return lr, lr_extend, hr
