@@ -29,6 +29,10 @@ class Trainer_VSR:
         self.ckp = ckp
         self.loss = nn.MSELoss()
 
+    def set_loader(self, new_loader):
+        self.loader_train = new_loader.loader_train
+        self.loader_test = new_loader.loader_test
+
     def make_optimizer(self):
         kwargs = {'lr': self.args.lr, 'weight_decay': self.args.weight_decay}
         return optim.Adam(self.model.parameters(), **kwargs)
