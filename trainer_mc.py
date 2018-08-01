@@ -16,7 +16,7 @@ from tqdm import tqdm
 import utils
 
 
-class Trainer_VSR:
+class Trainer_MC:
     def __init__(self, args, loader, my_model, ckp):
         self.args = args
         self.scale = args.scale
@@ -57,25 +57,15 @@ class Trainer_VSR:
                 lr = lr[:, :, 0:1, :, :]
                 hr = hr[:, :, 0:1, :, :]
 
-            # Divide LR frame sequence [N, n_sequence, n_colors, H, W] -> n_sequence * [N, 1, n_colors, H, W]    
-            frames = torch.split(lr, self.args.n_colors, dim = 1)
-            # squeeze frames n_sequence * [N, 1, n_colors, H, W] -> n_sequence * [N, n_colors, H, W]
-            frames_squeezed = [torch.squeeze(frame, dim = 1) for frame in frames]
-            # concatenate frames n_sequence * [N, n_colors, H, W] -> [N, n_sequence * n_colors, H, W]
-            frames_cat = torch.cat(frames_squeezed, dim = 1)
-            
-            # input frames = concatenated LR frames [N, n_sequence * n_colors, H, W]
-            lr = frames_cat
-            # target frame = middle HR frame [N, n_colors, H, W]
-            hr = hr[:, int(hr.shape[1]/2), : ,: ,:] 
-            
             lr = lr.to(self.device)
             hr = hr.to(self.device)
-
+            
             self.optimizer.zero_grad()
-            # output frame = single HR frame [N, n_colors, H, W] 
-            sr = self.model(lr)
-            loss = self.loss(sr, hr)
+            frame1 = torch.squeeze(lr[:,0:1,:,:,:], dim = 1)
+            frame2 = torch.squeeze(lr[:,1:2,:,:,:], dim = 1)
+            frame2_compensated, flow = self.model(frame1, frame2)
+
+            loss = self.loss(frame2_compensated, frame1)
             
             self.ckp.report_log(loss.item())
             loss.backward()
