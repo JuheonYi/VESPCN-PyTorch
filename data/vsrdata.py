@@ -180,10 +180,9 @@ class VSRData(data.Dataset):
             video_idx, frame_idx = self._find_video_num(idx, n_poss_frames)
             f_hrs = self.images_hr[video_idx][frame_idx:frame_idx+self.n_seq]
             f_lrs = self.images_lr[video_idx][frame_idx:frame_idx+self.n_seq]
-            filenames = [os.path.splitext(os.path.basename(file))[0] for file in f_hrs]
+            filenames = [os.path.split(os.path.dirname(file))[-1] + '_' + os.path.splitext(os.path.basename(file))[0] for file in f_hrs]
             hrs = np.array([imageio.imread(hr_name) for hr_name in f_hrs])
             lrs = np.array([imageio.imread(lr_name) for lr_name in f_lrs])
-
         return lrs, hrs, filenames
 
     def _load_file_from_loaded_data(self, idx):
@@ -217,17 +216,21 @@ class VSRData(data.Dataset):
         """
         scale = self.scale
         if self.train:
+            patch_size = self.args.patch_size - (self.args.patch_size % 4)
             lr, hr = common.get_patch(
                 lr,
                 hr,
-                patch_size=self.args.patch_size,
+                patch_size=patch_size,
                 scale=scale,
             )
             if not self.args.no_augment:
                 lr, hr = common.augment(lr, hr)
         else:
             ih, iw = lr.shape[:2]
-            hr = hr[0:ih * scale, 0:iw * scale]
+            ih -= ih % 4
+            iw -= iw % 4
+            lr = lr[:ih, :iw]
+            hr = hr[:ih * scale, :iw * scale]
 
         return lr, hr
 

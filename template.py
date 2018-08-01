@@ -8,6 +8,7 @@ def set_template(args):
         args.data_test = 'Vid4'
         args.dir_data_test = '../../Dataset'
         args.process = True
+        args.save = 'MotionCompensator1'
 
     elif args.template == 'JH':
         args.model = "ESPCN_modified"

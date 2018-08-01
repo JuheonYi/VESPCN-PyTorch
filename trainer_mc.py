@@ -11,7 +11,6 @@ from tqdm import tqdm
 
 import utils
 
-
 class Trainer_MC:
     def __init__(self, args, loader, my_model, ckp):
         self.args = args
@@ -69,7 +68,6 @@ class Trainer_MC:
         self.ckp.end_log(len(self.loader_train))
 
     def test(self):
-
         epoch = self.scheduler.last_epoch + 1
         self.ckp.write_log('\nEvaluation:')
         self.model.eval()
@@ -78,7 +76,7 @@ class Trainer_MC:
             tqdm_test = tqdm(self.loader_test, ncols=80)
             for idx_img, (lr, _, filename) in enumerate(tqdm_test):
                 ycbcr_flag = False
-                filename = filename[0]
+                filename = filename[0][0] + '_' + str(self.args.n_sequence)
                 lr = lr.to(self.device)
                 frame1, frame2 = lr[:, 0], lr[:, 1]
                 if self.args.n_colors == 1 and lr.size()[-3] == 3:
