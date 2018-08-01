@@ -20,7 +20,9 @@ class VSRData(data.Dataset):
         self.scale = args.scale
         self.idx_scale = 0
         self.n_seq = args.n_sequence
+        #self.image_range : need to make it flexible in the test area
         self.img_range = 30
+        self.n_frames_video = []
         data_range = [r.split('-') for r in args.data_range.split('/')]
         if train:
             data_range = data_range[0]
@@ -39,14 +41,10 @@ class VSRData(data.Dataset):
         self.images_hr, self.images_lr = self._scan()
         self.num_video = len(self.images_hr)
         print("Number of videos to load:", self.num_video)
-
-        self.n_videos = len(self.images_hr)
-        if train and args.process:
-            self.data_hr, self.data_lr = self._load(self.n_videos)
-
-        self.args.batch_size = min(args.batch_size, self.num_video)
         if train:
-            self.repeat = args.test_every // (self.num_video // self.args.batch_size)
+            self.repeat = args.test_every // max((self.num_video // self.args.batch_size), 1)
+            if args.process:
+                self.data_hr, self.data_lr = self._load(self.num_video)
 
     # Below functions as used to prepare images
     def _scan(self):
@@ -58,30 +56,33 @@ class VSRData(data.Dataset):
             vid_hr_names = sorted(glob.glob(os.path.join(self.dir_hr, 'Video*')))
             vid_lr_names = sorted(glob.glob(os.path.join(self.dir_lr, 'Video*')))
         else:
-            vid_hr_names = sorted(glob.glob(os.path.join(self.dir_hr,'*')))
-            vid_lr_names = sorted(glob.glob(os.path.join(self.dir_lr,'*')))
+            vid_hr_names = sorted(glob.glob(os.path.join(self.dir_hr, '*')))
+            vid_lr_names = sorted(glob.glob(os.path.join(self.dir_lr, '*')))
             print("Number of test videos", len(vid_hr_names))
 
         assert len(vid_hr_names) == len(vid_lr_names)
 
         names_hr = []
         names_lr = []
-        if self.args.load_all_videos == True:
+        if self.args.load_all_videos or not self.train:
             # Load videos all at once
             for vid_hr_name, vid_lr_name in zip(vid_hr_names, vid_lr_names):
                 hr_dir_names = sorted(glob.glob(os.path.join(vid_hr_name, '*.png')))
                 lr_dir_names = sorted(glob.glob(os.path.join(vid_lr_name, '*.png')))
                 names_hr.append(hr_dir_names)
                 names_lr.append(lr_dir_names)
+                self.n_frames_video.append(len(hr_dir_names))
+
         else:
             # If we do not want to load videos all at once, only load partial amount
-            # TODO: load subset of videos (args.n_videos)
+            # Should use if the number of frames in each video is equal. (as yet)
             for vid_hr_name, vid_lr_name in zip(vid_hr_names, vid_lr_names):
-                start = self._get_index(random.randint(0, self.img_range - self.n_seq))
+                start = self._get_index(random.randint(0, self.img_range - self.n_seq + 1))
                 hr_dir_names = sorted(glob.glob(os.path.join(vid_hr_name, '*.png')))[start:start+self.n_seq]
                 lr_dir_names = sorted(glob.glob(os.path.join(vid_lr_name, '*.png')))[start:start+self.n_seq]
                 names_hr.append(hr_dir_names)
                 names_lr.append(lr_dir_names)
+
         return names_hr, names_lr
 
     def _load(self, n_videos):
@@ -126,12 +127,8 @@ class VSRData(data.Dataset):
             lrs = np.array(common.set_channel(*lrs, n_channels=self.args.n_colors))
             hrs = np.array(common.set_channel(*hrs, n_channels=self.args.n_colors))
 
-        lr_tensors = common.np2Tensor(
-            *lrs,  rgb_range=self.args.rgb_range, n_colors=self.args.n_colors
-        )
-        hr_tensors = common.np2Tensor(
-            *hrs,  rgb_range=self.args.rgb_range, n_colors=self.args.n_colors
-        )
+        lr_tensors = common.np2Tensor(*lrs,  rgb_range=self.args.rgb_range, n_colors=self.args.n_colors)
+        hr_tensors = common.np2Tensor(*hrs,  rgb_range=self.args.rgb_range, n_colors=self.args.n_colors)
         
         return torch.stack(lr_tensors), torch.stack(hr_tensors), filenames
 
@@ -139,7 +136,8 @@ class VSRData(data.Dataset):
         if self.train:
             return len(self.images_hr) * self.repeat
         else:
-            return len(self.images_hr)
+            #if test, call all possible video sequence fragments
+            return sum(self.n_frames_video) - (self.n_seq - 1) * len(self.n_frames_video)
 
     def _get_index(self, idx):
         if self.train:
@@ -152,24 +150,43 @@ class VSRData(data.Dataset):
         Read image from given image directory
         Return: n_seq * H * W * C numpy array and list of corresponding filenames
         """
-        print("Loading video %d" %idx)
         f_hrs = self.images_hr[idx]
         f_lrs = self.images_lr[idx]
 
-        filenames = [os.path.splitext(os.path.basename(file))[0] for file in f_hrs]
-        hrs = np.array([imageio.imread(hr_name) for hr_name in f_hrs])
-        lrs = np.array([imageio.imread(lr_name) for lr_name in f_lrs])
-        #print(hrs.shape, lrs.shape)
+        if self.args.load_all_videos:
+            start = self._get_index(random.randint(0, self.img_range - self.n_seq + 1))
+
+            pass
+        else:
+            filenames = [os.path.splitext(os.path.basename(file))[0] for file in f_hrs]
+            hrs = np.array([imageio.imread(hr_name) for hr_name in f_hrs])
+            lrs = np.array([imageio.imread(lr_name) for lr_name in f_lrs])
+
         return lrs, hrs, filenames
 
     def _load_file_from_loaded_data(self, idx):
+        def _find_video_num(idx, n_frame):
+            for i, j in enumerate(n_frame):
+                if idx < j:
+                    return i, idx
+                else:
+                    idx -= j
+
         idx = self._get_index(idx)
 
-        if self.args.load_all_videos:
+        if self.args.load_all_videos or not self.train:
             # If we loaded videos all at once, randomly select contiguous n_seq frames
-            start = self._get_index(random.randint(0, self.img_range - self.n_seq))
-            hrs = self.data_hr[idx][start:start+self.n_seq]
-            lrs = self.data_lr[idx][start:start+self.n_seq]
+            # TODO : Fit for the test dataset
+            if self.train:
+                start = self._get_index(random.randint(0, self.n_frames_video[idx] - self.n_seq + 1))
+                hrs = self.data_hr[idx][start:start+self.n_seq]
+                lrs = self.data_lr[idx][start:start+self.n_seq]
+            else:
+                n_poss_frames = [n - self.n_seq + 1 for n in self.n_frames_video]
+                video_idx, frame_idx = _find_video_num(idx, n_poss_frames)
+                hrs = self.data_hr[video_idx][frame_idx:frame_idx+self.n_seq]
+                lrs = self.data_lr[video_idx][frame_idx:frame_idx+self.n_seq]
+
         else:
             # If we loaded only n_seq frames, just load all frames
             hrs = self.data_hr[idx]

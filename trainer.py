@@ -61,7 +61,7 @@ class Trainer:
             loss.backward()
             self.optimizer.step()
 
-            if batch % self.args.print_every == 0:
+            if (batch+1) % self.args.print_every == 0:
                 self.ckp.write_log('[{}/{}]\tLoss : {:.5f}'.format(
                     (batch + 1) * self.args.batch_size, len(self.loader_train.dataset),
                     self.ckp.loss_log[-1] / (batch + 1)))
