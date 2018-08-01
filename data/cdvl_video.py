@@ -1,11 +1,6 @@
 import os
 
 from data import common
-<<<<<<< HEAD
-
-from data import srdata
-=======
->>>>>>> 0536009bd674247e9f96fbde119407f861bc031a
 from data import vsrdata
 
 import numpy as np
