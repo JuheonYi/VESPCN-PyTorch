@@ -37,6 +37,7 @@ class VSRData(data.Dataset):
             self._set_filesystem(args.dir_data_test)
 
         self.images_hr, self.images_lr = self._scan()
+
         self.n_videos = len(self.images_hr)
         if train and args.process:
             self.data_hr, self.data_lr = self._load(self.n_videos)
@@ -49,20 +50,39 @@ class VSRData(data.Dataset):
         """
         Returns a list of image directories
         """
-        vid_hr_names = sorted(glob.glob(os.path.join(self.dir_hr, 'Video*')))
-        vid_lr_names = sorted(glob.glob(os.path.join(self.dir_lr, 'Video*')))
+        if self.train:
+            # training datasets are labeled as .../Video*/HR/*.png
+            vid_hr_names = sorted(glob.glob(os.path.join(self.dir_hr, 'Video*')))
+            vid_lr_names = sorted(glob.glob(os.path.join(self.dir_lr, 'Video*')))
+        else:
+            vid_hr_names = sorted(glob.glob(os.path.join(self.dir_hr,'*')))
+            vid_lr_names = sorted(glob.glob(os.path.join(self.dir_lr,'*')))
+            print("Number of test videos", len(vid_hr_names))
+
         self.num_video = len(vid_hr_names)
         assert len(vid_hr_names) == len(vid_lr_names)
 
         names_hr = []
         names_lr = []
-        for vid_hr_name, vid_lr_name in zip(vid_hr_names, vid_lr_names):
-            start = self._get_index(random.randint(0, self.img_range - self.n_seq))
-            hr_dir_names = sorted(glob.glob(os.path.join(vid_hr_name, '*.png')))[start:start+self.n_seq]
-            lr_dir_names = sorted(glob.glob(os.path.join(vid_lr_name, '*.png')))[start:start+self.n_seq]
-            names_hr.append(hr_dir_names)
-            names_lr.append(lr_dir_names)
-
+        if self.args.load_all_videos == True:
+            # Load videos all at once
+            #for vid_hr_name, vid_lr_name in zip(vid_hr_names, vid_lr_names):
+            for i in range(0,1):
+                vid_hr_name = vid_hr_names[i]
+                vid_lr_name = vid_lr_names[i]
+                hr_dir_names = sorted(glob.glob(os.path.join(vid_hr_name, '*.png')))
+                lr_dir_names = sorted(glob.glob(os.path.join(vid_lr_name, '*.png')))
+                names_hr.append(hr_dir_names)
+                names_lr.append(lr_dir_names)
+        else:
+            # If we do not want to load videos all at once, only load partial amount
+            # TODO: load subset of videos (args.n_videos)
+            for vid_hr_name, vid_lr_name in zip(vid_hr_names, vid_lr_names):
+                start = self._get_index(random.randint(0, self.img_range - self.n_seq))
+                hr_dir_names = sorted(glob.glob(os.path.join(vid_hr_name, '*.png')))[start:start+self.n_seq]
+                lr_dir_names = sorted(glob.glob(os.path.join(vid_lr_name, '*.png')))[start:start+self.n_seq]
+                names_hr.append(hr_dir_names)
+                names_lr.append(lr_dir_names)
         return names_hr, names_lr
 
     def _load(self, n_videos):
@@ -136,17 +156,19 @@ class VSRData(data.Dataset):
         Read image from given image directory
         Return: n_seq * H * W * C numpy array and list of corresponding filenames
         """
+        print("Loading video %d" %idx)
         f_hrs = self.images_hr[idx]
         f_lrs = self.images_lr[idx]
 
         filenames = [os.path.splitext(os.path.basename(file))[0] for file in f_hrs]
         hrs = np.array([imageio.imread(hr_name) for hr_name in f_hrs])
         lrs = np.array([imageio.imread(lr_name) for lr_name in f_lrs])
-
+        #print(hrs.shape, lrs.shape)
         return lrs, hrs, filenames
 
     def _load_file_from_loaded_data(self, idx):
         idx = self._get_index(idx)
+        idx = 0
         hrs = self.data_hr[idx]
         lrs = self.data_lr[idx]
         filenames = [os.path.splitext(os.path.split(name)[-1])[0] for name in self.images_hr[idx]]

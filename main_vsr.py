@@ -7,7 +7,7 @@ from trainer_vsr import Trainer_VSR
 from logger import logger
 
 torch.manual_seed(args.seed)
-#chkp = logger.Logger(args)
+chkp = logger.Logger(args)
 
 print("VSR-main")
 loader = data.Data(args)

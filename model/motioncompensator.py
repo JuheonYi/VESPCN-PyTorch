@@ -19,7 +19,7 @@ class MotionCompensator(nn.Module):
         self.coarse_flow.extend([_gconv(24, 24, kernel_size=3, groups=args.n_colors), nn.ReLU(True)])
         self.coarse_flow.extend([_gconv(24, 24, kernel_size=5, groups=args.n_colors, stride=2), nn.ReLU(True)])
         self.coarse_flow.extend([_gconv(24, 24, kernel_size=3, groups=args.n_colors), nn.ReLU(True)])
-        self.coarse_flow.extend([_gconv(24, 32, kernel_size=3, groups=args.n_colors), nn.tanh()])
+        self.coarse_flow.extend([_gconv(24, 32, kernel_size=3, groups=args.n_colors), nn.Tanh()])
         self.coarse_flow.extend([nn.PixelShuffle(4)])
 
         self.C_flow = nn.Sequential(*self.coarse_flow)
@@ -28,7 +28,7 @@ class MotionCompensator(nn.Module):
         self.fine_flow = [_gconv(5, 24, kernel_size=5, groups=args.n_colors, stride=2), nn.ReLU(inplace=True)]
         for _ in range(3):
             self.fine_flow.extend([_gconv(24, 24, kernel_size=3, groups=args.n_colors), nn.ReLU(True)])
-        self.fine_flow.extend([_gconv(24, 8, kernel_size=3, groups=args.n_colors), nn.tanh()])
+        self.fine_flow.extend([_gconv(24, 8, kernel_size=3, groups=args.n_colors), nn.Tanh()])
         self.fine_flow.extend([nn.PixelShuffle(2)])
 
         self.F_flow = nn.Sequential(*self.fine_flow)

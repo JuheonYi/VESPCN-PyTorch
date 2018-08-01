@@ -12,6 +12,9 @@ class Data:
 
         list_benchmarks = ['Set5', 'Set14', 'B100', 'Urban100']
         benchmark = self.data_test in list_benchmarks
+        
+        list_benchmarks_video = ['Vid4']
+        benchmark_video = self.data_test in list_benchmarks_video
         if not self.args.test_only:
             m_train = import_module('data.' + self.data_train.lower())
             trainset = getattr(m_train, self.data_train)(self.args)
@@ -25,6 +28,9 @@ class Data:
         if benchmark:
             m_test = import_module('data.benchmark')
             testset = getattr(m_test, 'Benchmark')(self.args, name=args.data_test, train=False)
+        elif benchmark_video:
+            m_test = import_module('data.benchmark_video')
+            testset = getattr(m_test, 'Benchmark_video')(self.args, name=args.data_test, train=False)
         else:
             class_name = self.data_test
             m_test = import_module('data.' + class_name.lower())

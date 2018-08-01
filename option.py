@@ -43,8 +43,14 @@ parser.add_argument('--n_colors', type=int, default=1,
                     help='number of color channels to use')
 parser.add_argument('--no_augment', action='store_true',
                     help='do not use data augmentation')
+
+# Video SR parameters
+parser.add_argument('--n_videos', type=int, default=100,
+                    help='number of videos to load')
 parser.add_argument('--n_sequence', type=int, default=1,
                     help='length of image sequence per video')
+parser.add_argument('--load_all_videos', default=True,
+                    help='whether to load all videos on dataloader')
 
 
 # Model specifications
