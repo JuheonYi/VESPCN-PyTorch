@@ -10,8 +10,8 @@ from logger import logger
 
 torch.manual_seed(args.seed)
 chkp = logger.Logger(args)
-
 if args.task == 'MC':
+    print("Selected task: MC")
     model = model.Model(args, chkp)
     if args.load_all_videos:
         loader = data.Data(args)
@@ -30,13 +30,14 @@ if args.task == 'MC':
             t.train()
             t.test()
 elif args.task == 'Video':
+    print("Selected task: Video")
     model = model.Model(args, chkp)
     if args.load_all_videos:
         loader = data.Data(args)
         t = Trainer_VSR(args, loader, model, chkp)
         while not t.terminate():
             t.train()
-            #t.test()
+            t.test()
 
     else:
         loader = data.Data(args)
@@ -48,6 +49,7 @@ elif args.task == 'Video':
             t.test()
 
 elif args.task == 'Image':
+    print("Selected task: Image")
     loader = data.Data(args)
     model = model.Model(args, chkp)
     t = Trainer(args, loader, model, chkp)

@@ -58,14 +58,14 @@ class Trainer_VSR:
                 hr = hr[:, :, 0:1, :, :]
 
             # Divide LR frame sequence [N, n_sequence, n_colors, H, W] -> n_sequence * [N, 1, n_colors, H, W]    
-            frames = torch.split(lr, self.args.n_colors, dim = 1)
+            lr_frames = torch.split(lr, self.args.n_colors, dim = 1)
             # squeeze frames n_sequence * [N, 1, n_colors, H, W] -> n_sequence * [N, n_colors, H, W]
-            frames_squeezed = [torch.squeeze(frame, dim = 1) for frame in frames]
+            lr_frames_squeezed = [torch.squeeze(frame, dim = 1) for frame in lr_frames]
             # concatenate frames n_sequence * [N, n_colors, H, W] -> [N, n_sequence * n_colors, H, W]
-            frames_cat = torch.cat(frames_squeezed, dim = 1)
+            lr_frames_cat = torch.cat(lr_frames_squeezed, dim = 1)
             
             # input frames = concatenated LR frames [N, n_sequence * n_colors, H, W]
-            lr = frames_cat
+            lr = lr_frames_cat
             # target frame = middle HR frame [N, n_colors, H, W]
             hr = hr[:, int(hr.shape[1]/2), : ,: ,:] 
             
@@ -103,19 +103,43 @@ class Trainer_VSR:
         with torch.no_grad():
             tqdm_test = tqdm(self.loader_test, ncols=80)
             for idx_img, (lr, hr, filename) in enumerate(tqdm_test):
-                print(lr.shape)
-                print(hr.shape)
+                #print(lr.shape)
+                #print(hr.shape)
                 ycbcr_flag = False
-                if self.args.n_colors == 1 and lr.size()[1] == 3:
-                    print("converting to YCbCr")
+                #lr: [batch_size, n_seq, 3, patch_size, patch_size]
+                if self.args.n_colors == 1 and lr.size()[2] == 3:
+                    #print("converting to YCbCr")
                     # If n_colors is 1, split image into Y,Cb,Cr
                     ycbcr_flag = True
-                    sr_cbcr = _torch_imresize(lr, self.args.scale)[:, 1:, :, :].to(self.device)
-                    lr_cbcr = lr[:, 1:, :, :].to(self.device)
-                    lr = lr[:, 0:1, :, :]
-                    hr_cbcr = hr[:, 1:, :, :].to(self.device)
-                    hr = hr[:, 0:1, :, :]
+                    #sr_cbcr = _torch_imresize(lr, self.args.scale)[:, :, 1:, :, :].to(self.device)
+                    #lr_cbcr = lr[:, :, 1:, :, :].to(self.device)
+                    #lr = lr[:, :, 0:1, :, :]
+                    #hr_cbcr = hr[:, :, 1:, :, :].to(self.device)
+                    #hr = hr[:, :, 0:1, :, :]
+                    
+                    # for CbCr, select the middle frame
+                    lr_cbcr = lr[:, int(hr.shape[1]/2), 1:, :, :].to(self.device)
+                    hr_cbcr = hr[:, int(hr.shape[1]/2), 1: ,: ,:].to(self.device)
+                    sr_cbcr = _torch_imresize(lr[:, int(hr.shape[1]/2), :, :, :], self.args.scale)[:, 1:, :, :].to(self.device)
+                    #print("cbcr shape", lr_cbcr.shape, hr_cbcr.shape, sr_cbcr.shape)
 
+                    # extract Y channels (lr should be group, hr should be the center frame)
+                    lr = lr[:, :, 0:1, :, :]
+                    hr = hr[:, int(hr.shape[1]/2), 0:1, :, :]
+                    #print("Y shape", lr.shape, hr.shape)
+                    
+                # Divide LR frame sequence [N, n_sequence, n_colors, H, W] -> n_sequence * [N, 1, n_colors, H, W]    
+                lr_frames = torch.split(lr, self.args.n_colors, dim = 1)
+                # squeeze frames n_sequence * [N, 1, n_colors, H, W] -> n_sequence * [N, n_colors, H, W]
+                lr_frames_squeezed = [torch.squeeze(frame, dim = 1) for frame in lr_frames]
+                lr_frame_center = lr_frames_squeezed[int(hr.shape[1]/2)]
+                # concatenate frames n_sequence * [N, n_colors, H, W] -> [N, n_sequence * n_colors, H, W]
+                lr_frames_cat = torch.cat(lr_frames_squeezed, dim = 1)
+            
+                # input frames = concatenated LR frames [N, n_sequence * n_colors, H, W]
+                lr = lr_frames_cat  
+                #print("Y shape:", lr.shape)
+                      
                 filename = filename[0]
                 lr = lr.to(self.device)
                 hr = hr.to(self.device)
@@ -126,14 +150,19 @@ class Trainer_VSR:
                 lr, hr, sr = utils.postprocess(lr, hr, sr,
                                                rgb_range=self.args.rgb_range,
                                                ycbcr_flag=ycbcr_flag, device=self.device)
-
-                if ycbcr_flag:
-                    lr = torch.cat((lr, lr_cbcr), dim=1)
-                    hr = torch.cat((hr, hr_cbcr), dim=1)
-                    sr = torch.cat((sr, hr_cbcr), dim=1)
-
-                save_list = [lr, hr, sr]
+                
+                # for saving image, take the center frame for LR
+                lr = lr_frame_center.to(self.device)
+                #print("shape: lr", lr.shape, lr_cbcr.shape)
+                
                 if self.args.save_images:
+                    if ycbcr_flag:
+                        lr = torch.cat((lr, lr_cbcr), dim=1)
+                        hr = torch.cat((hr, hr_cbcr), dim=1)
+                        sr = torch.cat((sr, hr_cbcr), dim=1)
+
+                    save_list = [lr, hr, sr]
+                #if self.args.save_images:
                     self.ckp.save_images(filename, save_list, self.args.scale)
 
             self.ckp.end_log(len(self.loader_test), train=False)

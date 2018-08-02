@@ -69,6 +69,9 @@ class Logger:
         elif self.args.task == 'MC':
             filename = '{}/result/{}/{}_'.format(self.dir, self.args.data_test, filename)
             postfix = ['f1', 'f2', 'f2c']
+        elif self.args.task == 'Video':
+            filename = '{}/result/{}/{}_'.format(self.dir, self.args.data_test, filename)
+            postfix = ['LR', 'HR', 'SR']
         for img, post in zip(save_list, postfix):
             img = img[0].data.mul(255 / self.args.rgb_range)
             img = np.transpose(img.cpu().numpy(), (1, 2, 0))

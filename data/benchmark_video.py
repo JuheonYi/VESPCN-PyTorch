@@ -28,7 +28,7 @@ class Benchmark_video(vsrdata.VSRData):
         # Fill in your directory with your own template#
         #                                              #
         ################################################
-        elif self.args.template == "JH_video":
+        elif self.args.template == "JH_Video" or self.args.template == "JH_MC":
             self.apath = os.path.join(dir_data, self.name)
             self.dir_hr = os.path.join(self.apath, 'HR')
             self.dir_lr = os.path.join(self.apath, 'LR')

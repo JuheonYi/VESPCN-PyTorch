@@ -20,6 +20,7 @@ class VSRData(data.Dataset):
         self.scale = args.scale
         self.idx_scale = 0
         self.n_seq = args.n_sequence
+        print("n_seq:", args.n_sequence)
         #self.image_range : need to make it flexible in the test area
         self.img_range = 30
         self.n_frames_video = []

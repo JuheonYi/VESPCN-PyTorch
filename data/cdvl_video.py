@@ -31,7 +31,7 @@ class CDVL_VIDEO(vsrdata.VSRData):
         if self.args.template == "SY":
             super(CDVL_VIDEO, self)._set_filesystem(dir_data)
 
-        if self.args.template == "JH_video":
+        if self.args.template == "JH_Video" or self.args.template == "JH_MC":
             print("Loading CDVL videos")
             self.apath = os.path.join(dir_data, self.name)
             self.dir_hr = os.path.join(self.apath, 'HR')
