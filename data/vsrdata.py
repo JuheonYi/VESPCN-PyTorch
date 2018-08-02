@@ -90,6 +90,8 @@ class VSRData(data.Dataset):
         data_lr = []
         data_hr = []
         for idx in range(n_videos):
+            if idx % 10 == 0:
+                print("Loading video %d" %idx)
             lrs, hrs, _ = self._load_file(idx)
             hrs = np.array([imageio.imread(hr_name) for hr_name in self.images_hr[idx]])
             lrs = np.array([imageio.imread(lr_name) for lr_name in self.images_lr[idx]])
@@ -118,6 +120,7 @@ class VSRData(data.Dataset):
             self.dir_lr = os.path.join(self.apath, 'LR_big')
 
     def __getitem__(self, idx):
+        #print("get_item, idx: %d" %idx)
         if self.train and self.args.process:
             lrs, hrs, filenames = self._load_file_from_loaded_data(idx)
         else:
@@ -129,10 +132,12 @@ class VSRData(data.Dataset):
         if self.train:
             lrs = np.array(common.set_channel(*lrs, n_channels=self.args.n_colors))
             hrs = np.array(common.set_channel(*hrs, n_channels=self.args.n_colors))
-
+        
         lr_tensors = common.np2Tensor(*lrs,  rgb_range=self.args.rgb_range, n_colors=self.args.n_colors)
         hr_tensors = common.np2Tensor(*hrs,  rgb_range=self.args.rgb_range, n_colors=self.args.n_colors)
-        
+        #print("len:", len(lr_tensors), len(hr_tensors))
+        #print("lr tensors shape:", lr_tensors[0].shape,  lr_tensors[1].shape, lr_tensors[2].shape)
+        #print("hr tensors shape:", hr_tensors[0].shape,  hr_tensors[1].shape, hr_tensors[2].shape)
         return torch.stack(lr_tensors), torch.stack(hr_tensors), filenames
 
     def __len__(self):
@@ -166,7 +171,7 @@ class VSRData(data.Dataset):
             f_lrs = self.images_lr[idx]
 
             if self.args.load_all_videos:
-                start = self._get_index(random.randint(0, self.n_frames_video[idx] - self.n_seq + 1))
+                start = self._get_index(random.randint(0, self.n_frames_video[idx] - self.n_seq))
                 filenames = [os.path.splitext(os.path.basename(file))[0] for file in f_hrs[start:start+self.n_seq]]
                 hrs = np.array([imageio.imread(hr_name) for hr_name in f_hrs[start:start+self.n_seq]])
                 lrs = np.array([imageio.imread(lr_name) for lr_name in f_lrs[start:start+self.n_seq]])
@@ -193,7 +198,7 @@ class VSRData(data.Dataset):
             # If we loaded videos all at once, randomly select contiguous n_seq frames
             # TODO : Fit for the test dataset
             if self.train:
-                start = self._get_index(random.randint(0, self.n_frames_video[idx] - self.n_seq + 1))
+                start = self._get_index(random.randint(0, self.n_frames_video[idx] - self.n_seq))
                 hrs = self.data_hr[idx][start:start+self.n_seq]
                 lrs = self.data_lr[idx][start:start+self.n_seq]
             else:

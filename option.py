@@ -31,7 +31,7 @@ parser.add_argument('--data_train', type=str, default='DIV2K',
                     help='train dataset name')
 parser.add_argument('--data_test', type=str, default='Set5',
                     help='test dataset name')
-parser.add_argument('--data_range', type=str, default='1-10/91-100',
+parser.add_argument('--data_range', type=str, default='1-29/91-100',
                     help='train/test data range')
 parser.add_argument('--process', action='store_true',
                     help='if onces, load all photos at once')
