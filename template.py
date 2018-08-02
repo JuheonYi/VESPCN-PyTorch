@@ -29,7 +29,8 @@ def set_template(args):
         args.model = "ESPCN_multiframe"
         args.save_images = False
         args.test_every = 1000
-        args.n_sequence = 3
+        args.n_sequence = 1
+        args.data_range = '1-39/91-100'
         args.epochs = 1000
         args.data_train = 'CDVL_VIDEO'
         args.dir_data = '/home/johnyi/deeplearning/research/VSR_Datasets/train'

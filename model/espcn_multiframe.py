@@ -10,11 +10,13 @@ class ESPCN_multiframe(nn.Module):
     def __init__(self, args):
         super(ESPCN_multiframe, self).__init__()
         print("Creating ESPCN multiframe (x%d)" %args.scale)
-        self.network = [nn.Conv2d(args.n_colors*args.n_sequence, 24, kernel_size = 3, padding =1), nn.ReLU(True)]
-        for i in range(0,7):
-            self.network.extend([nn.Conv2d(24, 24, kernel_size = 3, padding =1), nn.ReLU(True)])
+        #self.network = [nn.Conv2d(args.n_colors*args.n_sequence, 24, kernel_size = 3, padding =1), nn.ReLU(True)]
+        #for i in range(0,7):
+        #    self.network.extend([nn.Conv2d(24, 24, kernel_size = 3, padding =1), nn.ReLU(True)])
+        self.network = [nn.Conv2d(args.n_colors*args.n_sequence, 64, kernel_size = 5, padding =2), nn.ReLU(True)]
+        self.network.extend([nn.Conv2d(64, 32, kernel_size = 3, padding =1), nn.ReLU(True)])
         
-        self.network.extend([nn.Conv2d(24, args.n_colors * args.scale * args.scale, kernel_size = 3, padding =1), nn.ReLU(True)])
+        self.network.extend([nn.Conv2d(32, args.n_colors * args.scale * args.scale, kernel_size = 3, padding =1), nn.ReLU(True)])
         self.network.extend([nn.PixelShuffle(args.scale)])
         self.network.extend([nn.Conv2d(args.n_colors, args.n_colors, kernel_size = 1, padding = 0)])
         
