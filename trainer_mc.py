@@ -75,7 +75,6 @@ class Trainer_MC:
         with torch.no_grad():
             tqdm_test = tqdm(self.loader_test, ncols=80)
             for idx_img, (lr, _, filename) in enumerate(tqdm_test):
-                print(lr.shape)
                 ycbcr_flag = False
                 filename = filename[0][0] + '_' + str(self.args.n_sequence)
                 lr = lr.to(self.device)

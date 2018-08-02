@@ -1,14 +1,20 @@
 def set_template(args):
     if args.template == 'SY':
-        args.task = 'MC'
-        args.model = 'MotionCompensator'
-        args.n_sequence = 2
-        args.data_train = 'CDVL_VIDEO'
-        args.dir_data = '../../Dataset'
-        args.data_test = 'Vid4'
-        args.dir_data_test = '../../Dataset'
-        args.process = True
-        args.save = 'MotionCompensator1'
+        if args.task == 'MC':
+            args.model = 'MotionCompensator'
+            args.n_sequence = 2
+            args.data_train = 'CDVL_VIDEO'
+            args.dir_data = '../../Dataset'
+            args.data_test = 'Vid4'
+            args.dir_data_test = '../../Dataset'
+            args.process = True
+        elif args.task == 'Image':
+            args.model = 'ESPCN'
+            args.data_train = 'CDVL100'
+            args.dir_data = '../../Dataset'
+            args.data_test = 'Set5'
+            args.dir_data_test = '../../Dataset'
+            args.process = True
 
     elif args.template == 'JH':
         args.model = "ESPCN_modified"

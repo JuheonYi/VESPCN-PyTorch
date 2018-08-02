@@ -69,13 +69,6 @@ class Trainer:
         self.ckp.end_log(len(self.loader_train))
 
     def test(self):
-        def _torch_imresize(ttensor, scale):
-            nparray = ttensor.data.cpu().numpy()
-            nparray = np.transpose(np.squeeze(nparray, axis=0), (1,2,0))
-            nparray = misc.imresize(nparray, size=scale*100, interp='bicubic')
-            nparray = np.expand_dims(np.transpose(nparray, (2,0,1)), axis=0)
-            return torch.from_numpy(nparray).float()
-
         epoch = self.scheduler.last_epoch + 1
         self.ckp.write_log('\nEvaluation:')
         self.model.eval()

@@ -78,7 +78,7 @@ class Logger:
             if img.shape[2] == 1:
                 img = img.squeeze(axis=2)
             elif img.shape[2] == 3 and self.args.n_colors == 1:
-                img = sc.ycbcr2rgb(img.astype('float'))
+                img = sc.ycbcr2rgb(img.astype('float')).clip(0,1)
                 img = (255 * img).round().astype('uint8')
             if post == 'LR':
                 img = misc.imresize(img, size=self.args.scale*100, interp='bicubic')
