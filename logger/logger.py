@@ -73,7 +73,10 @@ class Logger:
                 os.makedirs(os.path.dirname(filename))
             postfix = ['f1', 'f2', 'f2c']
         elif self.args.task == 'Video':
-            filename = '{}/result/{}/{}_'.format(self.dir, self.args.data_test, filename)
+            f = filename.split('.')
+            filename = '{}/result/{}/{}/{}_'.format(self.dir, self.args.data_test, f[0], f[1])
+            if not os.path.exists(os.path.dirname(filename)):
+                os.makedirs(os.path.dirname(filename))
             postfix = ['LR', 'HR', 'SR']
         for img, post in zip(save_list, postfix):
             img = img[0].data.mul(255 / self.args.rgb_range)

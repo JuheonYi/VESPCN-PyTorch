@@ -18,6 +18,7 @@ def set_template(args):
 
     elif args.template == 'JH':
         args.model = "ESPCN_modified"
+        args.save = args.model
         args.epochs = 1000
         args.data_train = 'CDVL100'
         args.dir_data = '/home/johnyi/deeplearning/research/SISR_Datasets/train'
@@ -27,10 +28,11 @@ def set_template(args):
     elif args.template == 'JH_Video':
         args.task = "Video"
         args.model = "ESPCN_multiframe"
-        args.save_images = False
+        args.save = args.model
+        #args.save_images = False
         args.test_every = 1000
-        args.n_sequence = 1
-        args.data_range = '1-39/91-100'
+        args.n_sequence = 3
+        args.data_range = '1-115/91-100'
         args.epochs = 1000
         args.data_train = 'CDVL_VIDEO'
         args.dir_data = '/home/johnyi/deeplearning/research/VSR_Datasets/train'
@@ -40,7 +42,9 @@ def set_template(args):
     elif args.template == 'JH_MC':
         args.task = "MC"
         args.model = "MotionCompensator"
+        args.save = args.model
         args.n_sequence = 2
+        args.data_range = '1-5/91-100'
         args.epochs = 1000
         args.data_train = 'CDVL_VIDEO'
         args.dir_data = '/home/johnyi/deeplearning/research/VSR_Datasets/train'

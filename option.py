@@ -51,6 +51,8 @@ parser.add_argument('--n_sequence', type=int, default=3,
                     help='length of image sequence per video')
 parser.add_argument('--load_all_videos', default=True, action='store_false',
                     help='whether to load all videos on dataloader')
+parser.add_argument('--n_frames_per_video', type=int, default=30,
+                    help='number of frames per video to load')
 
 
 # Model specifications
