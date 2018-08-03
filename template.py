@@ -17,7 +17,8 @@ def set_template(args):
             args.process = True
 
     elif args.template == 'JH':
-        args.model = "ESPCN_modified"
+        args.task = "Image"
+        args.model = "ESPCN"#"ESPCN_modified"
         args.save = args.model
         args.epochs = 1000
         args.data_train = 'CDVL100'
