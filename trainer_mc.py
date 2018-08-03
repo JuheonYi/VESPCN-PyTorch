@@ -76,7 +76,7 @@ class Trainer_MC:
             tqdm_test = tqdm(self.loader_test, ncols=80)
             for idx_img, (lr, _, filename) in enumerate(tqdm_test):
                 ycbcr_flag = False
-                filename = filename[0][0] + '_' + str(self.args.n_sequence)
+                filename = filename[0][0]
                 lr = lr.to(self.device)
                 frame1, frame2 = lr[:, 0], lr[:, 1]
                 if self.args.n_colors == 1 and lr.size()[-3] == 3:
@@ -90,8 +90,8 @@ class Trainer_MC:
 
                 PSNR = utils.calc_psnr(self.args, frame1, frame2_compensated)
                 self.ckp.report_log(PSNR, train=False)
-                frame1, frame2c = utils.postprocess(frame1, frame2_compensated, rgb_range=self.args.rgb_range,
-                                                    ycbcr_flag=ycbcr_flag, device=self.device)
+                frame1, frame2, frame2c = utils.postprocess(frame1, frame2, frame2_compensated,
+                                            rgb_range=self.args.rgb_range, ycbcr_flag=ycbcr_flag, device=self.device)
 
                 if ycbcr_flag:
                     frame1 = torch.cat((frame1, frame1_cbcr), dim=1)

@@ -21,7 +21,7 @@ class VSRData(data.Dataset):
         self.idx_scale = 0
         self.n_seq = args.n_sequence
         print("n_seq:", args.n_sequence)
-        #self.image_range : need to make it flexible in the test area
+        # self.image_range : need to make it flexible in the test area
         self.img_range = 30
         self.n_frames_video = []
         data_range = [r.split('-') for r in args.data_range.split('/')]
@@ -59,7 +59,6 @@ class VSRData(data.Dataset):
         else:
             vid_hr_names = sorted(glob.glob(os.path.join(self.dir_hr, '*')))
             vid_lr_names = sorted(glob.glob(os.path.join(self.dir_lr, '*')))
-            print("Number of test videos", len(vid_hr_names))
 
         assert len(vid_hr_names) == len(vid_lr_names)
 
@@ -120,7 +119,6 @@ class VSRData(data.Dataset):
             self.dir_lr = os.path.join(self.apath, 'LR_big')
 
     def __getitem__(self, idx):
-        #print("get_item, idx: %d" %idx)
         if self.train and self.args.process:
             lrs, hrs, filenames = self._load_file_from_loaded_data(idx)
         else:
@@ -129,15 +127,10 @@ class VSRData(data.Dataset):
 
         lrs = np.array([patch[0] for patch in patches])
         hrs = np.array([patch[1] for patch in patches])
-        if self.train:
-            lrs = np.array(common.set_channel(*lrs, n_channels=self.args.n_colors))
-            hrs = np.array(common.set_channel(*hrs, n_channels=self.args.n_colors))
-        
+        lrs = np.array(common.set_channel(*lrs, n_channels=self.args.n_colors))
+        hrs = np.array(common.set_channel(*hrs, n_channels=self.args.n_colors))
         lr_tensors = common.np2Tensor(*lrs,  rgb_range=self.args.rgb_range, n_colors=self.args.n_colors)
         hr_tensors = common.np2Tensor(*hrs,  rgb_range=self.args.rgb_range, n_colors=self.args.n_colors)
-        #print("len:", len(lr_tensors), len(hr_tensors))
-        #print("lr tensors shape:", lr_tensors[0].shape,  lr_tensors[1].shape, lr_tensors[2].shape)
-        #print("hr tensors shape:", hr_tensors[0].shape,  hr_tensors[1].shape, hr_tensors[2].shape)
         return torch.stack(lr_tensors), torch.stack(hr_tensors), filenames
 
     def __len__(self):
@@ -186,7 +179,7 @@ class VSRData(data.Dataset):
             video_idx, frame_idx = self._find_video_num(idx, n_poss_frames)
             f_hrs = self.images_hr[video_idx][frame_idx:frame_idx+self.n_seq]
             f_lrs = self.images_lr[video_idx][frame_idx:frame_idx+self.n_seq]
-            filenames = [os.path.split(os.path.dirname(file))[-1] + '_' + os.path.splitext(os.path.basename(file))[0] for file in f_hrs]
+            filenames = [os.path.split(os.path.dirname(file))[-1] + '.' + os.path.splitext(os.path.basename(file))[0] for file in f_hrs]
             hrs = np.array([imageio.imread(hr_name) for hr_name in f_hrs])
             lrs = np.array([imageio.imread(lr_name) for lr_name in f_lrs])
         return lrs, hrs, filenames

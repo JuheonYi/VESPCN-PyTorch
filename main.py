@@ -15,7 +15,6 @@ if args.task == 'MC':
     model = model.Model(args, chkp)
     if args.load_all_videos:
         loader = data.Data(args)
-        print(len(loader.loader_train))
         t = Trainer_MC(args, loader, model, chkp)
         while not t.terminate():
             t.train()

@@ -67,7 +67,10 @@ class Logger:
             filename = '{}/result/{}/{}_x{}_'.format(self.dir, self.args.data_test, filename, scale)
             postfix = ['LR', 'HR', 'SR']
         elif self.args.task == 'MC':
-            filename = '{}/result/{}/{}_'.format(self.dir, self.args.data_test, filename)
+            f = filename.split('.')
+            filename = '{}/result/{}/{}/{}_'.format(self.dir, self.args.data_test, f[0], f[1])
+            if not os.path.exists(os.path.dirname(filename)):
+                os.makedirs(os.path.dirname(filename))
             postfix = ['f1', 'f2', 'f2c']
         elif self.args.task == 'Video':
             filename = '{}/result/{}/{}_'.format(self.dir, self.args.data_test, filename)
@@ -78,8 +81,9 @@ class Logger:
             if img.shape[2] == 1:
                 img = img.squeeze(axis=2)
             elif img.shape[2] == 3 and self.args.n_colors == 1:
-                img = sc.ycbcr2rgb(img.astype('float')).clip(0,1)
+                img = sc.ycbcr2rgb(img.astype('float')).clip(0, 1)
                 img = (255 * img).round().astype('uint8')
+                # img = img[:,:,0].round().astype('uint8')
             if post == 'LR':
                 img = misc.imresize(img, size=self.args.scale*100, interp='bicubic')
             imageio.imwrite('{}{}.png'.format(filename, post), img)
