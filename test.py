@@ -36,15 +36,33 @@ import torchvision
 from PIL import Image
 import numpy as np
 
-img = Image.open('./frame1.png')
+img = Image.open('./frame2.png')
 img = np.array(img)
 img = np.array([img]).astype("float64")
-b = torch.from_numpy(img)
+b = torch.from_numpy(img).double()
 b = b.permute(0, 3, 1, 2)
 print(b.size())
-# b has the size (1, 3, 360, 640)
-flow = torch.rand(1, 360, 640 , 2)
-b = Variable(b)
-flow = Variable(flow)
+#flow = torch.rand(1, 510, 510 , 2).double()
+flow = np.zeros((img.shape[1], img.shape[2], 2))
+for i in range(0, img.shape[1]):
+    for j in range(0, img.shape[2]):
+        flow[i,j,:] = [i, j]
+flow[:,:,0] = flow[:,:,0]/img.shape[1] 
+flow[:,:,1] = flow[:,:,1]/img.shape[2]
+flow = np.concatenate((flow[:,:,1:], flow[:,:,0:1]), axis=2)
+flow = (flow - 0.5) * 2
+#print(flow[flow.shape[0]-1, flow.shape[1]-1,:])
+print(flow[0, flow.shape[1]-1,:])
+#print(np.max(flow[:,:,0]), np.min(flow[:,:,0]))
+#print(np.max(flow[:,:,1]), np.min(flow[:,:,1]))
+
+flow = np.array([flow])
+flow = torch.from_numpy(flow).double()
+print(flow.shape)
 compensated = F.grid_sample(b, flow)
+out = compensated.permute(0,2,3,1)
 print(compensated.shape)
+print(out.shape)
+out = np.round(out.numpy()).astype("uint8")[0]
+print(np.max(out), np.min(out))
+imageio.imwrite("./out.png", out)

@@ -1,12 +1,16 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import numpy as np
 
 def make_model(args):
     return MotionCompensator(args)
 
 class MotionCompensator(nn.Module):
     def __init__(self, args):
+        self.device = 'cuda'
+        if args.cpu:
+            self.device = 'cpu' 
         super(MotionCompensator, self).__init__()
         print("Creating Motion compensator")
 
@@ -34,6 +38,22 @@ class MotionCompensator(nn.Module):
         self.F_flow = nn.Sequential(*fine_flow)
 
     def forward(self, frame_1, frame_2):
+        # Create identity flow
+        H = frame_1.shape[2]
+        W = frame_1.shape[3]
+        flow = np.zeros((H, W, 2))
+        for i in range(0, H):
+            for j in range(0, W):
+                flow[i,j,:] = [i, j]
+        flow[:,:,0] = flow[:,:,0]/H
+        flow[:,:,1] = flow[:,:,1]/W
+        # change axis
+        flow = np.concatenate((flow[:,:,1:], flow[:,:,0:1]), axis=2)
+        flow = (flow - 0.5) * 2
+
+        flow = np.array([flow])
+        self.identity_flow = torch.from_numpy(flow).float().to(self.device)
+        
         # Coarse flow
         coarse_in = torch.cat((frame_1, frame_2), dim=1)
         coarse_out = self.C_flow(coarse_in)
@@ -52,5 +72,6 @@ class MotionCompensator(nn.Module):
     def warp(self, img, flow):
         # https://discuss.pytorch.org/t/solved-how-to-do-the-interpolating-of-optical-flow/5019
         # permute flow N C H W -> N H W C
-        img_compensated = F.grid_sample(img, flow.permute(0, 2, 3, 1), padding_mode='border')
+        #print(flow.permute(0,2,3,1).shape, self.identity_flow.shape)
+        img_compensated = F.grid_sample(img, flow.permute(0, 2, 3, 1) + self.identity_flow, padding_mode='border')
         return img_compensated

@@ -105,7 +105,7 @@ class Trainer_MC:
                     frame2c = torch.cat((frame2c, frame2_cbcr_c), dim=1)
 
                 save_list = [frame1, frame2, frame2c]
-                if self.args.save_images:
+                if self.args.save_images and idx_img%10 == 0:
                     self.ckp.save_images(filename, save_list, self.args.scale)
 
             self.ckp.end_log(len(self.loader_test), train=False)
