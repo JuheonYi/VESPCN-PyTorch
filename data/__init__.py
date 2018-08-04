@@ -24,6 +24,8 @@ class Data:
                 shuffle=True,
                 pin_memory=not self.args.cpu
             )
+        else:
+            self.loader_train = None
 
         if benchmark:
             m_test = import_module('data.benchmark')

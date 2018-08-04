@@ -9,7 +9,7 @@ class Model(nn.Module):
     def __init__(self, args, ckp):
         super(Model, self).__init__()
         #print('Making model...')
-
+        self.args = args
         self.scale = args.scale
         self.cpu = args.cpu
         self.device = torch.device('cpu' if args.cpu else 'cuda')
@@ -69,6 +69,7 @@ class Model(nn.Module):
             )
 
         elif resume:
+            print('Loading model from {}'.format(os.path.join(apath, 'model', 'model_latest.pt')))
             self.get_model().load_state_dict(
                 torch.load(
                     os.path.join(apath, 'model', 'model_latest.pt'),
@@ -76,3 +77,12 @@ class Model(nn.Module):
                 ),
                 strict=False
             )
+        elif self.args.test_only:
+            self.get_model().load_state_dict(
+                torch.load(
+                    os.path.join(apath, 'model', 'model_best.pt'),
+                    **kwargs
+                ),
+                strict=False
+            )
+            

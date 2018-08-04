@@ -42,7 +42,7 @@ img = np.array([img]).astype("float64")
 b = torch.from_numpy(img).double()
 b = b.permute(0, 3, 1, 2)
 print(b.size())
-#flow = torch.rand(1, 510, 510 , 2).double()
+'''
 flow = np.zeros((img.shape[1], img.shape[2], 2))
 for i in range(0, img.shape[1]):
     for j in range(0, img.shape[2]):
@@ -51,14 +51,16 @@ flow[:,:,0] = flow[:,:,0]/img.shape[1]
 flow[:,:,1] = flow[:,:,1]/img.shape[2]
 flow = np.concatenate((flow[:,:,1:], flow[:,:,0:1]), axis=2)
 flow = (flow - 0.5) * 2
-#print(flow[flow.shape[0]-1, flow.shape[1]-1,:])
-print(flow[0, flow.shape[1]-1,:])
-#print(np.max(flow[:,:,0]), np.min(flow[:,:,0]))
-#print(np.max(flow[:,:,1]), np.min(flow[:,:,1]))
-
 flow = np.array([flow])
 flow = torch.from_numpy(flow).double()
-print(flow.shape)
+'''
+# Create identity flow
+x = np.linspace(-1, 1, img.shape[2])
+y = np.linspace(-1, 1, img.shape[1])
+xv, yv = np.meshgrid(x, y)
+id_flow = np.expand_dims(np.stack([xv, yv], axis=-1), axis=0)
+flow = torch.from_numpy(id_flow).double()
+
 compensated = F.grid_sample(b, flow)
 out = compensated.permute(0,2,3,1)
 print(compensated.shape)
