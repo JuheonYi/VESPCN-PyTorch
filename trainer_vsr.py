@@ -29,6 +29,11 @@ class Trainer_VSR:
         self.ckp = ckp
         self.loss = nn.MSELoss()
 
+        if args.load != '.':
+            self.optimizer.load_state_dict(torch.load(os.path.join(ckp.dir, 'optimizer.pt')))
+            for _ in range(len(ckp.log)):
+                self.scheduler.step()
+
     def set_loader(self, new_loader):
         self.loader_train = new_loader.loader_train
         self.loader_test = new_loader.loader_test

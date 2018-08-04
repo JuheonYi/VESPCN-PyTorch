@@ -29,6 +29,11 @@ class Trainer:
         self.ckp = ckp
         self.loss = nn.MSELoss()
 
+        if args.load != '.':
+            self.optimizer.load_state_dict(torch.load(os.path.join(ckp.dir, 'optimizer.pt')))
+            for _ in range(len(ckp.log)):
+                self.scheduler.step()
+
     def make_optimizer(self):
         kwargs = {'lr': self.args.lr, 'weight_decay': self.args.weight_decay}
         return optim.Adam(self.model.parameters(), **kwargs)

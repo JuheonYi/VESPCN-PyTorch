@@ -26,6 +26,7 @@ class Logger:
             if not os.path.exists(self.dir):
                 args.load = '.'
             else:
+                self.loss_log = torch.load(self.dir + '/loss_log.pt')
                 self.psnr_log = torch.load(self.dir + '/psnr_log.pt')
                 print('Continue from epoch {}...'.format(len(self.psnr_log)))
 
@@ -59,6 +60,7 @@ class Logger:
         trainer.model.save(self.dir, is_best)
         torch.save(self.loss_log, os.path.join(self.dir, 'loss_log.pt'))
         torch.save(self.psnr_log, os.path.join(self.dir, 'psnr_log.pt'))
+        torch.save(trainer.optimizer.state_dict(), os.path.join(self.dir, 'optimizer.pt'))
         self.plot_loss_log(epoch)
         self.plot_psnr_log(epoch)
 
