@@ -7,6 +7,7 @@ Original test setting: 5 videos with 30 frames inside each directory
 length of frame sequence = 4
 batch_size = 2
 """
+'''
 if __name__ == '__main__':
     if args.template == 'SY':
         vsr = VSRData(args, name='CDVL_Video', train=False)
@@ -25,3 +26,25 @@ if __name__ == '__main__':
     print(len(vsr[0][1]))  # 4
     print(vsr[0][1][0].shape)  # torch.Size([3,51,51])
     print(vsr[0][2])  # ['00001', '00002', '00003', '00004']
+'''
+
+    
+import torch.nn.functional as F
+import torch.optim as optim
+import torch
+import torchvision
+from PIL import Image
+import numpy as np
+
+img = Image.open('./frame1.png')
+img = np.array(img)
+img = np.array([img]).astype("float64")
+b = torch.from_numpy(img)
+b = b.permute(0, 3, 1, 2)
+print(b.size())
+# b has the size (1, 3, 360, 640)
+flow = torch.rand(1, 360, 640 , 2)
+b = Variable(b)
+flow = Variable(flow)
+compensated = F.grid_sample(b, flow)
+print(compensated.shape)
