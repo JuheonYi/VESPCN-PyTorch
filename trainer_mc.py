@@ -26,7 +26,7 @@ class Trainer_MC:
 
         if args.load != '.':
             self.optimizer.load_state_dict(torch.load(os.path.join(ckp.dir, 'optimizer.pt')))
-            for _ in range(len(ckp.log)):
+            for _ in range(len(ckp.psnr_log)):
                 self.scheduler.step()
 
     def set_loader(self, new_loader):
