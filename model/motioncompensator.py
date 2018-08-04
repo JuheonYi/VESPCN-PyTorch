@@ -41,8 +41,9 @@ class MotionCompensator(nn.Module):
         # Create identity flow
         x = np.linspace(-1, 1, frame_1.shape[3])
         y = np.linspace(-1, 1, frame_1.shape[2])
-        id_flow = np.expand_dims(np.meshgrid(x, y), axis=0)
-        self.identity_flow = torch.from_numpy(id_flow).to(self.device)
+        xv, yv = np.meshgrid(x, y)
+        id_flow = np.expand_dims(np.stack([xv, yv], axis=-1), axis=0)
+        self.identity_flow = torch.from_numpy(id_flow).float().to(self.device)
 
         # Coarse flow
         coarse_in = torch.cat((frame_1, frame_2), dim=1)
