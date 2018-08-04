@@ -4,6 +4,7 @@ def set_template(args):
             args.model = 'MotionCompensator'
             args.n_sequence = 2
             args.data_train = 'CDVL_VIDEO'
+            args.data_range = '1-10/90-100'
             args.dir_data = '../../Dataset'
             args.data_test = 'Vid4'
             args.dir_data_test = '../../Dataset'
@@ -15,6 +16,9 @@ def set_template(args):
             args.data_test = 'Set5'
             args.dir_data_test = '../../Dataset'
             args.process = True
+        elif args.task =='Video':
+            args.model = 'ESPCN_multiframe'
+
 
     elif args.template == 'JH':
         args.task = "Image"

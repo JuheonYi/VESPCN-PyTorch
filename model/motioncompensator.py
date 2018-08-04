@@ -48,14 +48,17 @@ class MotionCompensator(nn.Module):
         # Coarse flow
         coarse_in = torch.cat((frame_1, frame_2), dim=1)
         coarse_out = self.C_flow(coarse_in)
-        
-        frame_2_compensated_coarse = self.warp(frame_1, coarse_out)
+        coarse_out[:,0] /= frame_1.shape[3]
+        coarse_out[:,1] /= frame_2.shape[2]
+        frame_2_compensated_coarse = self.warp(frame_2, coarse_out)
         
         # Fine flow
         fine_in = torch.cat((frame_1, frame_2, frame_2_compensated_coarse, coarse_out), dim=1)
         fine_out = self.F_flow(fine_in)
-        
-        flow = coarse_out + fine_out
+        fine_out[:,0] /= frame_1.shape[3]
+        fine_out[:,1] /= frame_2.shape[2]
+        flow = (coarse_out + fine_out)
+
         frame_2_compensated = self.warp(frame_2, flow)
 
         return frame_2_compensated, flow
@@ -63,5 +66,5 @@ class MotionCompensator(nn.Module):
     def warp(self, img, flow):
         # https://discuss.pytorch.org/t/solved-how-to-do-the-interpolating-of-optical-flow/5019
         # permute flow N C H W -> N H W C
-        img_compensated = F.grid_sample(img, flow.permute(0, 2, 3, 1) + self.identity_flow, padding_mode='border')
+        img_compensated = F.grid_sample(img, (-flow.permute(0,2,3,1)+self.identity_flow).clamp(-1,1), padding_mode='border')
         return img_compensated
