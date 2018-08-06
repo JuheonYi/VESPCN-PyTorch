@@ -72,3 +72,9 @@ target/
 *.png
 *.jpg
 *.jpeg
+
+# Floydhub
+.DS_Store
+.floydexpt
+.floydignore
+floyd.yml
