@@ -2,12 +2,14 @@ import time
 import decimal
 import numpy as np
 
+import os
 import torch
 import torch.optim as optim
 import torch.optim.lr_scheduler as lrs
 import torch.nn as nn
 import torch.nn.functional as F
 from tqdm import tqdm
+from approx_huber_loss import Approx_Huber_Loss
 
 import utils
 
@@ -23,6 +25,7 @@ class Trainer_MC:
         self.scheduler = self.make_scheduler()
         self.ckp = ckp
         self.loss = nn.MSELoss()
+        self.flow_loss = Approx_Huber_Loss()
 
         if args.load != '.':
             self.optimizer.load_state_dict(torch.load(os.path.join(ckp.dir, 'optimizer.pt')))
@@ -59,9 +62,9 @@ class Trainer_MC:
             lr = lr.to(self.device)
             frame1, frame2 = lr[:, 0], lr[:, 1]
             frame2_compensated, flow = self.model(frame1, frame2)
-            loss = self.loss(frame2_compensated, frame1)
+            loss = self.loss(frame2_compensated, frame1) + self.flow_loss(flow)
             
-            self.ckp.report_log(loss.item())
+            self.ckp.report_log(loss.item()) # TODO: Check logging issues for Huber loss
             loss.backward()
             self.optimizer.step()
 
