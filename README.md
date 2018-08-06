@@ -3,8 +3,8 @@ PyTorch implementation of EPSCN [1]/VESPCN [2].
 
 ## **TODO list**
 - [x] Implement the SISR ESPCN network
-- [ ] Making dataloader for video SR
-- [ ] Complete the motion compensation network
+- [x] Making dataloader for video SR
+- [x] Complete the motion compensation network
 - [ ] Joining the ESPCN to motion compensation network
 
 ## **References**

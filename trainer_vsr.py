@@ -57,7 +57,7 @@ class Trainer_VSR:
         self.model.train()
         self.ckp.start_log()
         for batch, (lr, hr, _) in enumerate(self.loader_train):
-            #print(lr.shape, hr.shape) #lr: [batch_size, n_seq, 3, patch_size, patch_size]
+            #lr: [batch_size, n_seq, 3, patch_size, patch_size]
             if self.args.n_colors == 1 and lr.size()[2] == 3:
                 lr = lr[:, :, 0:1, :, :]
                 hr = hr[:, :, 0:1, :, :]
@@ -94,13 +94,6 @@ class Trainer_VSR:
         self.ckp.end_log(len(self.loader_train))
 
     def test(self):
-        def _torch_imresize(ttensor, scale):
-            nparray = ttensor.data.cpu().numpy()
-            nparray = np.transpose(np.squeeze(nparray, axis=0), (1,2,0))
-            nparray = misc.imresize(nparray, size=scale*100, interp='bicubic')
-            nparray = np.expand_dims(np.transpose(nparray, (2,0,1)), axis=0)
-            return torch.from_numpy(nparray).float()
-
         epoch = self.scheduler.last_epoch + 1
         self.ckp.write_log('\nEvaluation:')
         self.model.eval()
@@ -108,51 +101,36 @@ class Trainer_VSR:
         with torch.no_grad():
             tqdm_test = tqdm(self.loader_test, ncols=80)
             for idx_img, (lr, hr, filename) in enumerate(tqdm_test):
-                #print(lr.shape)
-                #print(hr.shape)
                 ycbcr_flag = False
                 filename = filename[0][0]
-                #lr: [batch_size, n_seq, 3, patch_size, patch_size]
+                # lr: [batch_size, n_seq, 3, patch_size, patch_size]
                 if self.args.n_colors == 1 and lr.size()[2] == 3:
-                    #print("converting to YCbCr")
                     # If n_colors is 1, split image into Y,Cb,Cr
                     ycbcr_flag = True
                     # for CbCr, select the middle frame
                     lr_center_y = lr[:, int(hr.shape[1]/2), 0:1, :, :].to(self.device)
                     lr_cbcr = lr[:, int(hr.shape[1]/2), 1:, :, :].to(self.device)
-                    hr_cbcr = hr[:, int(hr.shape[1]/2), 1: ,: ,:].to(self.device)
-                    sr_cbcr = _torch_imresize(lr[:, int(hr.shape[1]/2), :, :, :], self.args.scale)[:, 1:, :, :].to(self.device)
-                    #print("cbcr shape", lr_cbcr.shape, hr_cbcr.shape, sr_cbcr.shape)
-
+                    hr_cbcr = hr[:, int(hr.shape[1]/2), 1:, :, :].to(self.device)
                     # extract Y channels (lr should be group, hr should be the center frame)
                     lr = lr[:, :, 0:1, :, :]
                     hr = hr[:, int(hr.shape[1]/2), 0:1, :, :]
-                    #print("Y shape", lr.shape, hr.shape)
-                    
-                # Divide LR frame sequence [N, n_sequence, n_colors, H, W] -> n_sequence * [N, 1, n_colors, H, W]    
-                lr_frames = torch.split(lr, self.args.n_colors, dim = 1)
-                # squeeze frames n_sequence * [N, 1, n_colors, H, W] -> n_sequence * [N, n_colors, H, W]
-                lr_frames_squeezed = [torch.squeeze(frame, dim = 1) for frame in lr_frames]
-                # concatenate frames n_sequence * [N, n_colors, H, W] -> [N, n_sequence * n_colors, H, W]
-                lr_frames_cat = torch.cat(lr_frames_squeezed, dim = 1)
-            
+
                 # input frames = concatenated LR frames [N, n_sequence * n_colors, H, W]
-                lr = lr_frames_cat  
-                #print("Y shape:", lr.shape)
-                      
+                lr = lr.reshape(lr.shape[0], -1, lr.shape[3], lr.shape[4])
+
                 lr = lr.to(self.device)
                 hr = hr.to(self.device)
 
                 sr = self.model(lr)
                 PSNR = utils.calc_psnr(self.args, sr, hr)
                 self.ckp.report_log(PSNR, train=False)
-                lr, lr_center_y, hr, sr = utils.postprocess(lr, lr_center_y, hr, sr,
-                                               rgb_range=self.args.rgb_range,
+                lr, hr, sr = utils.postprocess(lr, hr, sr, rgb_range=self.args.rgb_range,
                                                ycbcr_flag=ycbcr_flag, device=self.device)
 
                 if self.args.save_images and idx_img%30 == 0:
-                    #print("saving image %d" %idx_img)
                     if ycbcr_flag:
+                        lr_center_y = utils.postprocess(lr_center_y, rgb_range=self.args.rgb_range,
+                                                        ycbcr_flag=ycbcr_flag, device=self.device)
                         lr = torch.cat((lr_center_y, lr_cbcr), dim=1)
                         hr = torch.cat((hr, hr_cbcr), dim=1)
                         sr = torch.cat((sr, hr_cbcr), dim=1)

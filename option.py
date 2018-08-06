@@ -49,8 +49,6 @@ parser.add_argument('--no_augment', action='store_true',
 # Video SR parameters
 parser.add_argument('--n_sequence', type=int, default=3,
                     help='length of image sequence per video')
-parser.add_argument('--load_all_videos', default=True, action='store_false',
-                    help='whether to load all videos on dataloader')
 parser.add_argument('--n_frames_per_video', type=int, default=30,
                     help='number of frames per video to load')
 
@@ -103,7 +101,7 @@ parser.add_argument('--resume', action='store_true',
                     help='resume from the latest if true')
 parser.add_argument('--print_every', type=int, default=100,
                     help='how many batches to wait before logging training status')
-parser.add_argument('--save_images', default=True,
+parser.add_argument('--save_images', default=True, action='store_false',
                     help='save images')
 
 args = parser.parse_args()

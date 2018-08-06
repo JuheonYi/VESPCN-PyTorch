@@ -1,24 +1,22 @@
 def set_template(args):
     if args.template == 'SY':
+        args.data_train = 'CDVL_VIDEO'
+        args.data_range = '1-165/90-100'
+        args.dir_data = '../../Dataset'
+        args.data_test = 'Vid4'
+        args.dir_data_test = '../../Dataset'
+        args.process = True
+        args.lr = 5e-4
         if args.task == 'MC':
             args.model = 'MotionCompensator'
             args.n_sequence = 2
-            args.data_train = 'CDVL_VIDEO'
-            args.data_range = '1-10/90-100'
-            args.dir_data = '../../Dataset'
-            args.data_test = 'Vid4'
-            args.dir_data_test = '../../Dataset'
-            args.process = True
+
         elif args.task == 'Image':
             args.model = 'ESPCN'
-            args.data_train = 'CDVL100'
-            args.dir_data = '../../Dataset'
-            args.data_test = 'Set5'
-            args.dir_data_test = '../../Dataset'
-            args.process = True
-        elif args.task =='Video':
-            args.model = 'ESPCN_multiframe'
 
+        elif args.task == 'Video':
+            args.model = 'ESPCN_multiframe2'
+            args.n_sequence = 3
 
     elif args.template == 'JH':
         args.task = "Image"
