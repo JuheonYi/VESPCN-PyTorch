@@ -62,9 +62,9 @@ class Trainer_MC:
             lr = lr.to(self.device)
             frame1, frame2 = lr[:, 0], lr[:, 1]
             frame2_compensated, flow = self.model(frame1, frame2)
-            loss = self.loss(frame2_compensated, frame1) + self.flow_loss(flow)
+            loss = self.loss(frame2_compensated, frame1) + self.args.lambd * self.flow_loss(flow)
             
-            self.ckp.report_log(loss.item()) # TODO: Check logging issues for Huber loss
+            self.ckp.report_log(loss.item())  # TODO: Check logging issues for Huber loss
             loss.backward()
             self.optimizer.step()
 
