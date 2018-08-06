@@ -150,7 +150,7 @@ class Trainer_VSR:
                                                rgb_range=self.args.rgb_range,
                                                ycbcr_flag=ycbcr_flag, device=self.device)
 
-                if self.args.save_images and idx_img%10 == 0:
+                if self.args.save_images and idx_img%30 == 0:
                     #print("saving image %d" %idx_img)
                     if ycbcr_flag:
                         lr = torch.cat((lr_center_y, lr_cbcr), dim=1)

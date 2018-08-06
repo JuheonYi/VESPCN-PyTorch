@@ -10,7 +10,6 @@ def postprocess(*images, rgb_range, ycbcr_flag, device):
         if ycbcr_flag:
             mean_YCbCr = torch.Tensor([109]).to(device)
             out = (img.mul(rgb_coefficient) + mean_YCbCr).clamp(16, 235).div(rgb_coefficient)
-
         elif img.shape[2] == 3:
             mean_RGB = torch.Tensor([123.68, 116.779, 103.939]).to(device)
             mean_RGB = mean_RGB.reshape([1, 3, 1, 1])

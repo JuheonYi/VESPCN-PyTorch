@@ -55,8 +55,8 @@ flow = np.array([flow])
 flow = torch.from_numpy(flow).double()
 '''
 # Create identity flow
-x = np.linspace(-1, 1, img.shape[2])
-y = np.linspace(-1, 1, img.shape[1])
+x = np.linspace(-1, 1, img.shape[2]) - 0.01
+y = np.linspace(-1, 1, img.shape[1]) - 0.01
 xv, yv = np.meshgrid(x, y)
 id_flow = np.expand_dims(np.stack([xv, yv], axis=-1), axis=0)
 flow = torch.from_numpy(id_flow).double()

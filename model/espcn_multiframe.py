@@ -20,8 +20,10 @@ class ESPCN_multiframe(nn.Module):
         self.network.extend([nn.Conv2d(args.n_colors, args.n_colors, kernel_size = 1, padding = 0)])
         '''
         self.network = [nn.Conv2d(args.n_colors*args.n_sequence, 64, kernel_size = 5, padding =2), nn.ReLU(True)]
-        self.network.extend([nn.Conv2d(64, 32, kernel_size = 3, padding =1), nn.ReLU(True)])
-        self.network.extend([nn.Conv2d(32, args.n_colors * args.scale * args.scale, kernel_size = 3, padding =1), nn.ReLU(True)])
+        self.network.extend([nn.Conv2d(64, 48, kernel_size = 3, padding =1), nn.ReLU(True)])
+        self.network.extend([nn.Conv2d(48, 32, kernel_size = 3, padding =1), nn.ReLU(True)])
+        self.network.extend([nn.Conv2d(32, 24, kernel_size = 3, padding =1), nn.ReLU(True)])
+        self.network.extend([nn.Conv2d(24, args.n_colors * args.scale * args.scale, kernel_size = 3, padding =1), nn.ReLU(True)])
         self.network.extend([nn.PixelShuffle(args.scale)])
         self.network.extend([nn.Conv2d(args.n_colors, args.n_colors, kernel_size = 1, padding = 0)])
         

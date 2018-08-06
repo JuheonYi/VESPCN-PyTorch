@@ -97,7 +97,6 @@ class Trainer:
                 lre = lre.to(self.device)
                 lr = lr.to(self.device)
                 hr = hr.to(self.device)
-
                 sr = self.model(lr)
                 PSNR = utils.calc_psnr(self.args, sr, hr)
                 bic_PSNR += utils.calc_psnr(self.args, lre, hr)
