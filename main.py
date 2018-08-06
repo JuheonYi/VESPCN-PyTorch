@@ -13,39 +13,20 @@ chkp = logger.Logger(args)
 if args.task == 'MC':
     print("Selected task: MC")
     model = model.Model(args, chkp)
-    if args.load_all_videos:
-        loader = data.Data(args)
-        t = Trainer_MC(args, loader, model, chkp)
-        while not t.terminate():
-            t.train()
-            t.test()
+    loader = data.Data(args)
+    t = Trainer_MC(args, loader, model, chkp)
+    while not t.terminate():
+        t.train()
+        t.test()
 
-    else:
-        loader = data.Data(args)
-        t = Trainer_MC(args, loader, model, chkp)
-        while not t.terminate():
-            loader = data.Data(args)
-            t.set_loader(loader)
-            t.train()
-            t.test()
 elif args.task == 'Video':
     print("Selected task: Video")
     model = model.Model(args, chkp)
-    if args.load_all_videos:
-        loader = data.Data(args)
-        t = Trainer_VSR(args, loader, model, chkp)
-        while not t.terminate():
-            t.train()
-            t.test()
-
-    else:
-        loader = data.Data(args)
-        t = Trainer_VSR(args, loader, model, chkp)
-        while not t.terminate():
-            loader = data.Data(args)
-            t.set_loader(loader)
-            t.train()
-            t.test()
+    loader = data.Data(args)
+    t = Trainer_VSR(args, loader, model, chkp)
+    while not t.terminate():
+        t.train()
+        t.test()
 
 elif args.task == 'Image':
     print("Selected task: Image")
