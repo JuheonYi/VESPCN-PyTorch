@@ -86,7 +86,7 @@ class Trainer_VSR:
             loss.backward()
             self.optimizer.step()
 
-            if batch % self.args.print_every == 0:
+            if (batch + 1) % self.args.print_every == 0:
                 self.ckp.write_log('[{}/{}]\tLoss : {:.5f}'.format(
                     (batch + 1) * self.args.batch_size, len(self.loader_train.dataset),
                     self.ckp.loss_log[-1] / (batch + 1)))
@@ -129,7 +129,7 @@ class Trainer_VSR:
 
                 if self.args.save_images and idx_img%30 == 0:
                     if ycbcr_flag:
-                        lr_center_y = utils.postprocess(lr_center_y, rgb_range=self.args.rgb_range,
+                        [lr_center_y] = utils.postprocess(lr_center_y, rgb_range=self.args.rgb_range,
                                                         ycbcr_flag=ycbcr_flag, device=self.device)
                         lr = torch.cat((lr_center_y, lr_cbcr), dim=1)
                         hr = torch.cat((hr, hr_cbcr), dim=1)

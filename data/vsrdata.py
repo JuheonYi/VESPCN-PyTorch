@@ -46,8 +46,8 @@ class VSRData(data.Dataset):
         print("Number of videos to load:", self.num_video)
         if train:
             self.repeat = args.test_every // max((self.num_video // self.args.batch_size), 1)
-            if args.process:
-                self.data_hr, self.data_lr = self._load(self.num_video)
+        if args.process:
+            self.data_hr, self.data_lr = self._load(self.num_video)
 
     # Below functions as used to prepare images
     def _scan(self):
@@ -96,6 +96,8 @@ class VSRData(data.Dataset):
             lrs = np.array([imageio.imread(lr_name) for lr_name in self.images_lr[idx]])
             data_lr.append(lrs)
             data_hr.append(hrs)
+        #data_lr = common.set_channel(*data_lr, n_channels=self.args.n_colors)
+        #data_hr = common.set_channel(*data_hr, n_channels=self.args.n_colors)
         return data_hr, data_lr
 
     def _set_filesystem(self, dir_data):
@@ -119,12 +121,12 @@ class VSRData(data.Dataset):
             self.dir_lr = os.path.join(self.apath, 'LR_big')
 
     def __getitem__(self, idx):
-        if self.train and self.args.process:
+        if self.args.process:
             lrs, hrs, filenames = self._load_file_from_loaded_data(idx)
         else:
             lrs, hrs, filenames = self._load_file(idx)
-        patches = [self.get_patch(lr, hr) for lr, hr in zip(lrs, hrs)]
 
+        patches = [self.get_patch(lr, hr) for lr, hr in zip(lrs, hrs)]
         lrs = np.array([patch[0] for patch in patches])
         hrs = np.array([patch[1] for patch in patches])
         lrs = np.array(common.set_channel(*lrs, n_channels=self.args.n_colors))
@@ -162,7 +164,6 @@ class VSRData(data.Dataset):
         if self.train:
             f_hrs = self.images_hr[idx]
             f_lrs = self.images_lr[idx]
-
             start = self._get_index(random.randint(0, self.n_frames_video[idx] - self.n_seq))
             filenames = [os.path.splitext(os.path.basename(file))[0] for file in f_hrs[start:start+self.n_seq]]
             hrs = np.array([imageio.imread(hr_name) for hr_name in f_hrs[start:start+self.n_seq]])
@@ -185,13 +186,15 @@ class VSRData(data.Dataset):
             start = self._get_index(random.randint(0, self.n_frames_video[idx] - self.n_seq))
             hrs = self.data_hr[idx][start:start+self.n_seq]
             lrs = self.data_lr[idx][start:start+self.n_seq]
+            filenames = [os.path.splitext(os.path.split(name)[-1])[0] for name in self.images_hr[idx]]
+
         else:
             n_poss_frames = [n - self.n_seq + 1 for n in self.n_frames_video]
             video_idx, frame_idx = self._find_video_num(idx, n_poss_frames)
+            f_hrs = self.images_hr[video_idx][frame_idx:frame_idx+self.n_seq]
             hrs = self.data_hr[video_idx][frame_idx:frame_idx+self.n_seq]
             lrs = self.data_lr[video_idx][frame_idx:frame_idx+self.n_seq]
-
-        filenames = [os.path.splitext(os.path.split(name)[-1])[0] for name in self.images_hr[idx]]
+            filenames = [os.path.split(os.path.dirname(file))[-1] + '.' + os.path.splitext(os.path.basename(file))[0] for file in f_hrs]
 
         return lrs, hrs, filenames
 
@@ -218,5 +221,3 @@ class VSRData(data.Dataset):
             hr = hr[:ih * scale, :iw * scale]
 
         return lr, hr
-
-

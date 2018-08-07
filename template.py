@@ -1,7 +1,7 @@
 def set_template(args):
     if args.template == 'SY':
         args.data_train = 'CDVL_VIDEO'
-        args.data_range = '1-165/90-100'
+        args.data_range = '1-16/90-100'
         args.dir_data = '../../Dataset'
         args.data_test = 'Vid4'
         args.dir_data_test = '../../Dataset'
@@ -15,7 +15,7 @@ def set_template(args):
             args.model = 'ESPCN'
 
         elif args.task == 'Video':
-            args.model = 'ESPCN_multiframe2'
+            args.model = 'ESPCN_multiframe'
             args.n_sequence = 3
 
     elif args.template == 'JH':
