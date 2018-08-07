@@ -25,7 +25,7 @@ class Trainer_MC:
         self.scheduler = self.make_scheduler()
         self.ckp = ckp
         self.loss = nn.MSELoss()
-        self.flow_loss = Approx_Huber_Loss()
+        self.flow_loss = Approx_Huber_Loss(args)
 
         if args.load != '.':
             self.optimizer.load_state_dict(torch.load(os.path.join(ckp.dir, 'optimizer.pt')))

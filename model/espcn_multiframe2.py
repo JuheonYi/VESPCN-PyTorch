@@ -14,10 +14,13 @@ class ESPCN_multiframe2(nn.Module):
         print("Creating ESPCN multiframe2 (x%d)" % args.scale)
         network = [nn.Conv2d(args.n_colors * args.n_sequence, 64, kernel_size=3, padding=1), nn.ReLU(True)]
         network.extend([nn.Conv2d(64, 64, kernel_size=3, padding=1), nn.ReLU(True)])
+        network.extend([nn.Conv2d(64, 64, kernel_size=3, padding=1), nn.ReLU(True)])
         network.extend([nn.Conv2d(64, 32, kernel_size=3, padding=1), nn.ReLU(True)])
         network.extend([nn.Conv2d(32, 32, kernel_size=3, padding=1), nn.ReLU(True)])
+        network.extend([nn.Conv2d(32, 32, kernel_size=3, padding=1), nn.ReLU(True)])
+        network.extend([nn.Conv2d(32, 20, kernel_size=3, padding=1), nn.ReLU(True)])
         network.extend(
-            [nn.Conv2d(32, args.n_colors * args.scale * args.scale, kernel_size=3, padding=1), nn.ReLU(True)])
+            [nn.Conv2d(20, args.n_colors * args.scale * args.scale, kernel_size=3, padding=1), nn.ReLU(True)])
         network.extend([nn.PixelShuffle(args.scale)])
         network.extend([nn.Conv2d(args.n_colors, args.n_colors, kernel_size=1, padding=0)])
 

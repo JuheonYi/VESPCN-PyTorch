@@ -15,7 +15,8 @@ def set_template(args):
             args.model = 'ESPCN'
 
         elif args.task == 'Video':
-            args.model = 'ESPCN_multiframe'
+            args.model = 'ESPCN_multiframe2'
+            args.patch_size = 17
             args.n_sequence = 3
 
     elif args.template == 'JH':
