@@ -9,6 +9,7 @@ class ESPCN_multiframe(nn.Module):
 #upscale_factor -> args
     def __init__(self, args):
         super(ESPCN_multiframe, self).__init__()
+        self.name = 'ESPCN_mf'
         print("Creating ESPCN multiframe (x%d)" %args.scale)
         '''
         self.network = [nn.Conv2d(args.n_colors*args.n_sequence, 24, kernel_size = 3, padding =1), nn.ReLU(True)]
@@ -31,9 +32,10 @@ class ESPCN_multiframe(nn.Module):
        
 
     def forward(self, x):
-        # squeeze frames n_sequence * [N, 1, n_colors, H, W] -> n_sequence * [N, n_colors, H, W]
-        lr_frames_squeezed = [torch.squeeze(frame, dim = 1) for frame in x]
-        # concatenate frames n_sequence * [N, n_colors, H, W] -> [N, n_sequence * n_colors, H, W]
-        lr_frames_cat = torch.cat(lr_frames_squeezed, dim = 1)    
+        if isinstance(x, list):
+            # squeeze frames n_sequence * [N, 1, n_colors, H, W] -> n_sequence * [N, n_colors, H, W]
+            lr_frames_squeezed = [torch.squeeze(frame, dim = 1) for frame in x]
+            # concatenate frames n_sequence * [N, n_colors, H, W] -> [N, n_sequence * n_colors, H, W]
+            x = torch.cat(lr_frames_squeezed, dim = 1)    
         
-        return self.net(lr_frames_cat)
+        return self.net(x)

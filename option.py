@@ -90,8 +90,10 @@ parser.add_argument('--epsilon', type=float, default=1e-8,
                     help='ADAM epsilon for numerical stability')
 parser.add_argument('--weight_decay', type=float, default=0,
                     help='weight decay')
-parser.add_argument('--lambd', type=float, default=0,
+parser.add_argument('--lambd', type=float, default=0.0005,
                     help='coefficient for modified huber loss')
+parser.add_argument('--beta', type=float, default=0.005,
+                    help='coefficient for motioncompensation mse loss')
 
 
 

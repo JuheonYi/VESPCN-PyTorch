@@ -73,10 +73,16 @@ class Trainer_VSR:
             hr = hr.to(self.device)
 
             self.optimizer.zero_grad()
-            # output frame = single HR frame [N, n_colors, H, W] 
-            sr = self.model(lr)
-            loss = self.loss(sr, hr)
-            
+            # output frame = single HR frame [N, n_colors, H, W]
+            if self.model.get_model().name == 'ESPCN_mf':
+                sr = self.model(lr)
+                loss = self.loss(sr, hr)
+            elif self.model.get_model().name == 'VESPCN':
+                sr, loss_mc_mse, loss_mc_huber = self.model(lr)
+                loss_mc = self.args.beta * loss_mc_mse + self.args.lambd * loss_mc_huber
+                loss_espcn = self.loss(sr, hr)
+                loss = loss_espcn + loss_mc
+                
             self.ckp.report_log(loss.item())
             loss.backward()
             self.optimizer.step()
@@ -85,7 +91,7 @@ class Trainer_VSR:
                 self.ckp.write_log('[{}/{}]\tLoss : {:.5f}'.format(
                     (batch + 1) * self.args.batch_size, len(self.loader_train.dataset),
                     self.ckp.loss_log[-1] / (batch + 1)))
-
+                print(loss_mc.item(), loss_espcn.item())
         self.ckp.end_log(len(self.loader_train))
 
     def test(self):
@@ -117,7 +123,12 @@ class Trainer_VSR:
                 lr = [x.to(self.device) for x in lr]
                 hr = hr.to(self.device)
 
-                sr = self.model(lr)
+                # output frame = single HR frame [N, n_colors, H, W]
+                if self.model.get_model().name == 'ESPCN_mf':
+                    sr = self.model(lr)
+                elif self.model.get_model().name == 'VESPCN':
+                    sr, _, _ = self.model(lr)
+
                 PSNR = utils.calc_psnr(self.args, sr, hr)
                 self.ckp.report_log(PSNR, train=False)
                 hr, sr = utils.postprocess(hr, sr, rgb_range=self.args.rgb_range,

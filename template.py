@@ -31,13 +31,13 @@ def set_template(args):
         args.process = True
     elif args.template == 'JH_Video':
         args.task = "Video"
-        args.model = "ESPCN_multiframe"
+        #args.model = "ESPCN_multiframe"
         args.save = args.model
         #args.save_images = False
         args.test_every = 1000
         args.n_sequence = 3
         args.n_frames_per_video = 15
-        args.data_range = '1-5/91-100'
+        args.data_range = '1-135/91-100'
         args.epochs = 1000
         args.data_train = 'CDVL_VIDEO'
         args.dir_data = '/home/johnyi/deeplearning/research/VSR_Datasets/train'
