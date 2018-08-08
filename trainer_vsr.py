@@ -63,18 +63,13 @@ class Trainer_VSR:
                 hr = hr[:, :, 0:1, :, :]
 
             # Divide LR frame sequence [N, n_sequence, n_colors, H, W] -> n_sequence * [N, 1, n_colors, H, W]    
-            lr_frames = torch.split(lr, self.args.n_colors, dim = 1)
-            # squeeze frames n_sequence * [N, 1, n_colors, H, W] -> n_sequence * [N, n_colors, H, W]
-            lr_frames_squeezed = [torch.squeeze(frame, dim = 1) for frame in lr_frames]
-            # concatenate frames n_sequence * [N, n_colors, H, W] -> [N, n_sequence * n_colors, H, W]
-            lr_frames_cat = torch.cat(lr_frames_squeezed, dim = 1)
+            lr = list(torch.split(lr, self.args.n_colors, dim = 1))
             
-            # input frames = concatenated LR frames [N, n_sequence * n_colors, H, W]
-            lr = lr_frames_cat
             # target frame = middle HR frame [N, n_colors, H, W]
             hr = hr[:, int(hr.shape[1]/2), : ,: ,:] 
             
-            lr = lr.to(self.device)
+            #lr = lr.to(self.device)
+            lr = [x.to(self.device) for x in lr]
             hr = hr.to(self.device)
 
             self.optimizer.zero_grad()
@@ -115,16 +110,17 @@ class Trainer_VSR:
                     lr = lr[:, :, 0:1, :, :]
                     hr = hr[:, int(hr.shape[1]/2), 0:1, :, :]
 
-                # input frames = concatenated LR frames [N, n_sequence * n_colors, H, W]
-                lr = lr.reshape(lr.shape[0], -1, lr.shape[3], lr.shape[4])
+                # Divide LR frame sequence [N, n_sequence, n_colors, H, W] -> n_sequence * [N, 1, n_colors, H, W]    
+                lr = list(torch.split(lr, self.args.n_colors, dim = 1))
 
-                lr = lr.to(self.device)
+                #lr = lr.to(self.device)
+                lr = [x.to(self.device) for x in lr]
                 hr = hr.to(self.device)
 
                 sr = self.model(lr)
                 PSNR = utils.calc_psnr(self.args, sr, hr)
                 self.ckp.report_log(PSNR, train=False)
-                lr, hr, sr = utils.postprocess(lr, hr, sr, rgb_range=self.args.rgb_range,
+                hr, sr = utils.postprocess(hr, sr, rgb_range=self.args.rgb_range,
                                                ycbcr_flag=ycbcr_flag, device=self.device)
 
                 if self.args.save_images and idx_img%30 == 0:

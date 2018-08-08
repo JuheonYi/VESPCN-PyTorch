@@ -31,4 +31,9 @@ class ESPCN_multiframe(nn.Module):
        
 
     def forward(self, x):
-        return self.net(x)
+        # squeeze frames n_sequence * [N, 1, n_colors, H, W] -> n_sequence * [N, n_colors, H, W]
+        lr_frames_squeezed = [torch.squeeze(frame, dim = 1) for frame in x]
+        # concatenate frames n_sequence * [N, n_colors, H, W] -> [N, n_sequence * n_colors, H, W]
+        lr_frames_cat = torch.cat(lr_frames_squeezed, dim = 1)    
+        
+        return self.net(lr_frames_cat)
