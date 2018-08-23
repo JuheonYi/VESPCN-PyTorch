@@ -34,7 +34,7 @@ parser.add_argument('--data_test', type=str, default='Set5',
 parser.add_argument('--data_range', type=str, default='1-90/91-100',
                     help='train/test data range')
 parser.add_argument('--process', action='store_true',
-                    help='if onces, load all photos at once')
+                    help='if True, load all dataset at once at RAM')
 parser.add_argument('--scale', type=str, default=3,
                     help='super resolution scale')
 parser.add_argument('--patch_size', type=int, default=20,
@@ -65,7 +65,7 @@ parser.add_argument('--reset', action='store_true',
                     help='reset the training')
 parser.add_argument('--test_every', type=int, default=1000,
                     help='do test per every N batches')
-parser.add_argument('--epochs', type=int, default=500,
+parser.add_argument('--epochs', type=int, default=1000,
                     help='number of epochs to train')
 parser.add_argument('--batch_size', type=int, default=16,
                     help='input batch size for training')

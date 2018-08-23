@@ -38,7 +38,7 @@ class SRData(data.Dataset):
 
         self.images_hr, self.images_lr = self._scan()
         if train and args.process:
-            print('Making a large array...')
+            print('Loading image dataset...')
             self.data_hr, self.data_lr = self._load(self.images_hr, self.images_lr)
 
         if train:
